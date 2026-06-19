@@ -1,0 +1,17 @@
+# Normalize all text files to LF in the repository (checkout honours the
+# platform / core.autocrlf for working-copy endings).
+* text=auto eol=lf
+
+# Shell scripts must keep LF endings so they run on Linux/macOS regardless of
+# the contributor's core.autocrlf setting (a CRLF shebang breaks on Unix).
+*.sh text eol=lf
+
+# Maven wrapper: the POSIX `mvnw` must stay LF to execute on Linux/macOS/WSL;
+# the Windows `mvnw.cmd` batch stays CRLF.
+mvnw text eol=lf
+mvnw.cmd text eol=crlf
+
+# Binary assets Git must not touch.
+*.pdf binary
+*.png binary
+*.jar binary

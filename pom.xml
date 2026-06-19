@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.demchaav</groupId>
+    <artifactId>graph-compose-markdown</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+
+    <name>GraphCompose Markdown</name>
+    <description>A themeable Markdown document composer powered by the GraphCompose layout engine.</description>
+    <url>https://github.com/DemchaAV/graphcompose-markdown</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>DemchaAV</id>
+            <name>Artem Demchyshyn</name>
+            <email>demchishynartem@gmail.com</email>
+            <url>https://github.com/DemchaAV</url>
+            <roles>
+                <role>Lead Developer</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>UTC 0</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/DemchaAV/graphcompose-markdown.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/DemchaAV/graphcompose-markdown.git</developerConnection>
+        <url>https://github.com/DemchaAV/graphcompose-markdown/tree/main</url>
+    </scm>
+
+    <properties>
+        <!-- Toolchain -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <!-- Runtime / library dependencies -->
+        <graphcompose.version>1.8.0</graphcompose.version>
+        <flexmark.version>0.64.8</flexmark.version>
+
+        <!-- Test dependencies -->
+        <junit.bom.version>6.1.0</junit.bom.version>
+        <assertj.version>3.27.7</assertj.version>
+
+        <!-- Build plugins -->
+        <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
+        <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
+        <maven.enforcer.plugin.version>3.6.3</maven.enforcer.plugin.version>
+        <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
+        <maven.jar.plugin.version>3.5.0</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
+        <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
+        <maven.surefire.plugin.version>3.5.6</maven.surefire.plugin.version>
+
+        <!-- Minimum toolchain (enforced by maven-enforcer-plugin) -->
+        <enforcer.requireMavenVersion>3.8.0</enforcer.requireMavenVersion>
+        <enforcer.requireJavaVersion>17</enforcer.requireJavaVersion>
+
+        <!--
+            GPG signing — opted in via -Dgpg.skip=false (the publish
+            workflow does this on tag pushes). Default true so a maintainer
+            running `mvn -P release package` locally needs no GPG key.
+        -->
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!--
+            GraphCompose layout engine. Owns measurement, layout, pagination,
+            font resolution and PDF/DOCX rendering. Consumed purely as a Maven
+            dependency — this library never modifies GraphCompose.
+        -->
+        <dependency>
+            <groupId>io.github.demchaav</groupId>
+            <artifactId>graph-compose</artifactId>
+            <version>${graphcompose.version}</version>
+        </dependency>
+
+        <!--
+            Flexmark markdown parser. Same core module set GraphCompose pins
+            (0.64.8), plus the GFM strikethrough extension for ~~text~~:
+            - flexmark                      — Parser + com.vladsch.flexmark.ast.*
+            - flexmark-util-ast             — Node, NodeVisitor, VisitHandler
+            - flexmark-util-data            — MutableDataSet
+            - flexmark-ext-gfm-strikethrough — ~~strikethrough~~ inline run
+        -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-util-ast</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-util-data</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-gfm-strikethrough</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!--
+            Pin default-lifecycle plugins so requirePluginVersions (enforcer)
+            has nothing to flag. Versions match what Maven 3.9.x resolves
+            out-of-the-box; the explicit pin stops a future Maven upgrade
+            from silently shifting the plugin set we build against.
+        -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.22.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven.jar.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!--
+                Build-time precondition enforcement:
+                * requireJavaVersion / requireMavenVersion — pin the baseline
+                  so a newer local toolchain cannot mask a JDK 17 / Maven 3.8
+                  break that the CI matrix would hit.
+                * requirePluginVersions — every plugin declares an explicit,
+                  non-LATEST/RELEASE version. Stops silent reactor drift.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-toolchain-and-plugin-versions</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[${enforcer.requireMavenVersion},)</version>
+                                    <message>graph-compose-markdown requires Maven ${enforcer.requireMavenVersion} or newer.</message>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[${enforcer.requireJavaVersion},)</version>
+                                    <message>graph-compose-markdown requires JDK ${enforcer.requireJavaVersion} or newer.</message>
+                                </requireJavaVersion>
+                                <requirePluginVersions>
+                                    <banLatest>true</banLatest>
+                                    <banRelease>true</banRelease>
+                                    <banSnapshots>true</banSnapshots>
+                                    <message>Every plugin must declare an explicit non-LATEST/RELEASE version.</message>
+                                </requirePluginVersions>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Java compilation (records + sealed interfaces; no annotation processor) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+
+            <!-- Test execution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+            </plugin>
+
+            <!-- Public API Javadoc validation (run via `mvnw javadoc:javadoc` in CI) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.plugin.version}</version>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <failOnError>true</failOnError>
+                    <show>public</show>
+                    <quiet>true</quiet>
+                    <subpackages>io.github.demchaav.markdown</subpackages>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+            Maven Central / release-publishing artefacts. Activated with
+            `-P release`. Produces the *-sources.jar and *-javadoc.jar Central
+            requires, GPG-signs the set, and uploads through the Sonatype
+            central-publishing plugin. Never activated by the default local
+            build, so everyday `mvnw verify` does not pay for source/javadoc
+            packaging.
+        -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven.source.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven.javadoc.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <doclint>none</doclint>
+                                    <failOnError>false</failOnError>
+                                    <quiet>true</quiet>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!--
+                        GPG signing of the four published artefacts (main jar +
+                        sources + javadoc + pom). Maven Central rejects unsigned
+                        uploads. gpg.skip defaults true (local) and is flipped to
+                        false by the publish workflow. pinentry-mode=loopback is
+                        required for non-interactive CI signing.
+                    -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven.gpg.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${gpg.skip}</skip>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!--
+                        Sonatype central-publishing-maven-plugin: uploads the
+                        signed artefacts to the io.github.demchaav namespace.
+                        publishingServerId=central matches the <server id="central">
+                        the publish workflow writes into settings.xml from the
+                        CENTRAL_USERNAME / CENTRAL_TOKEN secrets. autoPublish=false
+                        uploads to the validation queue without auto-releasing;
+                        waitUntil=validated blocks the build until Sonatype's
+                        validator confirms the upload.
+                    -->
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central.publishing.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

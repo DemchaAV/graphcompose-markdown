@@ -1,0 +1,6 @@
+# CODEOWNERS — graph-compose-markdown
+#
+# Solo-maintained. Every change is reviewed by the maintainer.
+# When co-maintainers join, add lane-specific globs above the wildcard.
+
+*  @DemchaAV

@@ -1,0 +1,45 @@
+target/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+build/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Generated output ###
+*.pdf
+# Allow PDF previews that are committed README assets.
+!assets/readme/**/*.pdf
+
+### Editor / OS scratch files ###
+*.tmp
+*.bak
+*~
+*.swp
+*.swo
+
+### Local-only / not for the public repo ###
+# Claude Code working directory (settings, worktrees, transcripts).
+.claude/
+# Internal planning, audit, and roadmap notes that should not ship.
+docs/private/
