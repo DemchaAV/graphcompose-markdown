@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.composer;
 
 import io.github.demchaav.markdown.model.CodeBlockNode;
+import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
@@ -78,6 +79,15 @@ class MarkdownComposerTest {
                 .toPdfBytes();
 
         assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersFootnotesToPdf() throws Exception {
+        MarkdownComposer.Rendered rendered = MarkdownComposer.create(DefaultMarkdownTheme.light())
+                .render("A claim worth a note.[^1]\n\n[^1]: The supporting evidence.");
+
+        assertThat(rendered.document().blocks()).anySatisfy(n -> assertThat(n).isInstanceOf(FootnotesNode.class));
+        assertThat(header(rendered.toPdfBytes())).isEqualTo("%PDF-");
     }
 
     @Test

@@ -2,12 +2,15 @@ package io.github.demchaav.markdown.extension;
 
 import io.github.demchaav.markdown.mapper.FlexmarkAstMapper;
 import io.github.demchaav.markdown.model.CustomBlockNode;
+import io.github.demchaav.markdown.model.FootnoteDefinitionNode;
+import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.parser.FlexmarkMarkdownParser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,10 +59,23 @@ public final class CustomBlockParser {
      */
     public MarkdownDocument parse(String markdown) {
         String normalized = (markdown == null ? "" : markdown).replace("\r\n", "\n").replace('\r', '\n');
-        return new MarkdownDocument(parseBlocks(normalized));
+
+        // Footnotes are document-global, but the segmented parse below would split a
+        // reference from its definition. Resolve them once over the whole document: number
+        // every footnote and collect its definitions from a single full parse, then map the
+        // segments against that shared numbering and append one footnotes block at the end.
+        com.vladsch.flexmark.util.ast.Document full = parser.parse(normalized);
+        Map<String, Integer> footnoteNumbers = mapper.numberFootnotes(full);
+        List<FootnoteDefinitionNode> footnotes = mapper.footnoteDefinitions(full, footnoteNumbers);
+
+        List<MarkdownNode> blocks = parseBlocks(normalized, footnoteNumbers);
+        if (!footnotes.isEmpty()) {
+            blocks.add(new FootnotesNode(footnotes));
+        }
+        return new MarkdownDocument(blocks);
     }
 
-    private List<MarkdownNode> parseBlocks(String text) {
+    private List<MarkdownNode> parseBlocks(String text, Map<String, Integer> footnoteNumbers) {
         String[] lines = text.split("\n", -1);
         List<MarkdownNode> result = new ArrayList<>();
         StringBuilder normal = new StringBuilder();
@@ -67,7 +83,7 @@ public final class CustomBlockParser {
         while (i < lines.length) {
             Matcher open = OPEN.matcher(lines[i].strip());
             if (isOpen(lines[i]) && open.matches()) {
-                flushNormal(normal, result);
+                flushNormal(normal, result, footnoteNumbers);
                 String type = open.group(1).toLowerCase();
                 String variant = open.group(2);
 
@@ -86,18 +102,18 @@ public final class CustomBlockParser {
                     j++;
                 }
                 String inner = String.join("\n", List.of(lines).subList(innerStart, Math.min(j, lines.length)));
-                result.add(new CustomBlockNode(type, variant, parseBlocks(inner)));
+                result.add(new CustomBlockNode(type, variant, parseBlocks(inner, footnoteNumbers)));
                 i = (j < lines.length) ? j + 1 : j; // skip the closing fence
             } else {
                 normal.append(lines[i]).append('\n');
                 i++;
             }
         }
-        flushNormal(normal, result);
+        flushNormal(normal, result, footnoteNumbers);
         return result;
     }
 
-    private void flushNormal(StringBuilder normal, List<MarkdownNode> result) {
+    private void flushNormal(StringBuilder normal, List<MarkdownNode> result, Map<String, Integer> footnoteNumbers) {
         if (normal.length() == 0) {
             return;
         }
@@ -106,7 +122,7 @@ public final class CustomBlockParser {
         if (segment.isBlank()) {
             return;
         }
-        result.addAll(mapper.map(parser.parse(segment)).blocks());
+        result.addAll(mapper.mapSegment(parser.parse(segment), footnoteNumbers));
     }
 
     private static boolean isOpen(String line) {

@@ -25,8 +25,8 @@ class SamplePdfGenerationTest {
             # GraphCompose Markdown
 
             A themeable Markdown document composer powered by the **GraphCompose**
-            layout engine. The same Markdown can be reskinned without touching its
-            text — *content* and *appearance* stay separate.
+            layout engine.[^engine] The same Markdown can be reskinned without
+            touching its text — *content* and *appearance* stay separate.
 
             ## Inline formatting
 
@@ -83,6 +83,9 @@ class SamplePdfGenerationTest {
             :::callout tip
             Derive a new theme from an existing one and override only what differs.
             :::
+
+            [^engine]: GraphCompose owns measurement, layout, pagination and rendering;
+            this library only maps Markdown onto its document model.
             """;
 
     @Test

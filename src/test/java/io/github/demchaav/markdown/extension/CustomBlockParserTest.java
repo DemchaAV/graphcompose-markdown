@@ -2,9 +2,11 @@ package io.github.demchaav.markdown.extension;
 
 import io.github.demchaav.markdown.mapper.FlexmarkAstMapper;
 import io.github.demchaav.markdown.model.CustomBlockNode;
+import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.ParagraphNode;
+import io.github.demchaav.markdown.model.inline.FootnoteRefRun;
 import io.github.demchaav.markdown.parser.FlexmarkMarkdownParser;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +61,30 @@ class CustomBlockParserTest {
                 .filter(CustomBlockNode.class::isInstance).findFirst().orElseThrow();
         assertThat(inner.type()).isEqualTo("note");
         assertThat(inner.variant()).isEqualTo("info");
+    }
+
+    @Test
+    void resolvesFootnotesAcrossCustomBlockSegments() {
+        MarkdownDocument doc = parser.parse("""
+                Intro with a note.[^a]
+
+                :::callout info
+                Inside a custom block.
+                :::
+
+                [^a]: Defined after the block.
+                """);
+
+        // The reference (first segment) resolves even though the definition (last segment)
+        // is parsed separately from it.
+        ParagraphNode intro = (ParagraphNode) doc.blocks().get(0);
+        assertThat(intro.content()).anySatisfy(n -> assertThat(n).isInstanceOf(FootnoteRefRun.class));
+
+        // Exactly one footnotes block, at the end, with the definition numbered 1.
+        assertThat(doc.blocks()).filteredOn(n -> n instanceof FootnotesNode).hasSize(1);
+        FootnotesNode notes = (FootnotesNode) doc.blocks().get(doc.blocks().size() - 1);
+        assertThat(notes.definitions()).hasSize(1);
+        assertThat(notes.definitions().get(0).number()).isEqualTo(1);
     }
 
     @Test

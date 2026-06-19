@@ -2,6 +2,7 @@ package io.github.demchaav.markdown.mapper;
 
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.ColumnAlignment;
+import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.ImageNode;
 import io.github.demchaav.markdown.model.ListNode;
@@ -13,6 +14,7 @@ import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.model.ThematicBreakNode;
 import io.github.demchaav.markdown.model.inline.CodeRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
+import io.github.demchaav.markdown.model.inline.FootnoteRefRun;
 import io.github.demchaav.markdown.model.inline.ImageRun;
 import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.model.inline.LinkRun;
@@ -173,6 +175,26 @@ class FlexmarkAstMapperTest {
         assertThat(table.bodyRows()).hasSize(2);
         assertThat(plain(table.bodyRows().get(0).get(0).content())).isEqualTo("Ann");
         assertThat(plain(table.bodyRows().get(1).get(1).content())).isEqualTo("7");
+    }
+
+    @Test
+    void mapsFootnoteReferenceAndCollectsDefinitionAsNotesBlock() {
+        MarkdownDocument doc = parse("""
+                Text with a footnote.[^1]
+
+                [^1]: The footnote definition.
+                """);
+
+        ParagraphNode paragraph = (ParagraphNode) doc.blocks().get(0);
+        FootnoteRefRun ref = (FootnoteRefRun) paragraph.content().stream()
+                .filter(FootnoteRefRun.class::isInstance).findFirst().orElseThrow();
+        assertThat(ref.number()).isEqualTo(1);
+
+        FootnotesNode notes = (FootnotesNode) doc.blocks().get(doc.blocks().size() - 1);
+        assertThat(notes.definitions()).hasSize(1);
+        assertThat(notes.definitions().get(0).number()).isEqualTo(1);
+        ParagraphNode definition = (ParagraphNode) notes.definitions().get(0).content().get(0);
+        assertThat(plain(definition.content())).isEqualTo("The footnote definition.");
     }
 
     /** Flattens the literal text of a list of inline runs, descending into decorations. */

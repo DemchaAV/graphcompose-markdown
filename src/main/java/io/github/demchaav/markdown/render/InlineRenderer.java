@@ -8,6 +8,7 @@ import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
 import io.github.demchaav.markdown.model.inline.CodeRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
+import io.github.demchaav.markdown.model.inline.FootnoteRefRun;
 import io.github.demchaav.markdown.model.inline.ImageRun;
 import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.model.inline.LineBreakRun;
@@ -82,6 +83,8 @@ public final class InlineRenderer {
             if (!image.alt().isEmpty()) {
                 emit(rich, image.alt(), base, decor, false);
             }
+        } else if (node instanceof FootnoteRefRun ref) {
+            emitFootnoteRef(rich, ref, base);
         } else if (node instanceof LineBreakRun lineBreak) {
             if (lineBreak.hard()) {
                 rich.plain("\n");
@@ -124,6 +127,17 @@ public final class InlineRenderer {
                 .decoration(decoration)
                 .build();
         rich.style(text, style);
+    }
+
+    /** Emits a footnote reference as a small accent-coloured {@code [N]} on the baseline. */
+    private void emitFootnoteRef(RichText rich, FootnoteRefRun ref, InlineStyle base) {
+        DocumentTextStyle style = DocumentTextStyle.builder()
+                .fontName(base.family().resolve(false, false))
+                .size(base.size() * 0.78)
+                .color(base.linkColor())
+                .decoration(DocumentTextDecoration.DEFAULT)
+                .build();
+        rich.style("[" + ref.number() + "]", style);
     }
 
     /** Accumulated inline decoration state as the tree is walked. */
