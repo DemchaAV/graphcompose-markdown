@@ -10,6 +10,7 @@ import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
 import io.github.demchaav.markdown.theme.tokens.PageTokens;
 import io.github.demchaav.markdown.theme.tokens.ShapeTokens;
 import io.github.demchaav.markdown.theme.tokens.SpacingTokens;
+import io.github.demchaav.markdown.theme.tokens.SyntaxColors;
 import io.github.demchaav.markdown.theme.tokens.TypographyTokens;
 
 import java.util.List;
@@ -128,6 +129,6 @@ public final class DefaultMarkdownTheme {
                 DocumentColor.rgb(51, 65, 85),     // rule
                 DocumentColor.rgb(96, 165, 250),   // accent
                 DocumentColor.rgb(15, 23, 42));    // surface (dark page)
-        return new MarkdownTokens(colors, typography(), spacing(), shape(), page());
+        return new MarkdownTokens(colors, typography(), spacing(), shape(), page(), SyntaxColors.defaultDark());
     }
 }

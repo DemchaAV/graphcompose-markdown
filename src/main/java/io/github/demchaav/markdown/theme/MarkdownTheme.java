@@ -2,6 +2,8 @@ package io.github.demchaav.markdown.theme;
 
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
 import io.github.demchaav.markdown.extension.ImageResolver;
+import io.github.demchaav.markdown.extension.RegexSyntaxHighlighter;
+import io.github.demchaav.markdown.extension.SyntaxHighlighter;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.render.NodeRenderer;
@@ -24,11 +26,13 @@ public final class MarkdownTheme {
     private final MarkdownTokens tokens;
     private final RendererRegistry registry;
     private final ImageResolver imageResolver;
+    private final SyntaxHighlighter highlighter;
 
     private MarkdownTheme(Builder builder) {
         this.tokens = Objects.requireNonNull(builder.tokens, "tokens");
         this.registry = builder.registry;
         this.imageResolver = builder.imageResolver;
+        this.highlighter = builder.highlighter;
     }
 
     /** @return the design tokens */
@@ -44,6 +48,11 @@ public final class MarkdownTheme {
     /** @return the image resolver */
     public ImageResolver imageResolver() {
         return imageResolver;
+    }
+
+    /** @return the code syntax highlighter */
+    public SyntaxHighlighter highlighter() {
+        return highlighter;
     }
 
     /**
@@ -81,10 +90,12 @@ public final class MarkdownTheme {
         private MarkdownTokens tokens;
         private final RendererRegistry registry;
         private ImageResolver imageResolver;
+        private SyntaxHighlighter highlighter;
 
         private Builder() {
             this.registry = new RendererRegistry();
             this.imageResolver = new DefaultImageResolver();
+            this.highlighter = new RegexSyntaxHighlighter();
         }
 
         private Builder(MarkdownTheme base) {
@@ -92,6 +103,7 @@ public final class MarkdownTheme {
             this.tokens = base.tokens;
             this.registry = new RendererRegistry(base.registry);
             this.imageResolver = base.imageResolver;
+            this.highlighter = base.highlighter;
         }
 
         /**
@@ -156,6 +168,17 @@ public final class MarkdownTheme {
          */
         public Builder imageResolver(ImageResolver resolver) {
             this.imageResolver = Objects.requireNonNull(resolver, "resolver");
+            return this;
+        }
+
+        /**
+         * Sets the code syntax highlighter (default {@link RegexSyntaxHighlighter}).
+         *
+         * @param newHighlighter the highlighter
+         * @return this builder
+         */
+        public Builder highlighter(SyntaxHighlighter newHighlighter) {
+            this.highlighter = Objects.requireNonNull(newHighlighter, "highlighter");
             return this;
         }
 

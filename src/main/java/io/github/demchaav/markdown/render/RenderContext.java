@@ -4,6 +4,7 @@ import com.demcha.compose.document.dsl.RichText;
 import com.demcha.compose.document.dsl.SectionBuilder;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.extension.ImageResolver;
+import io.github.demchaav.markdown.extension.SyntaxHighlighter;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.model.inline.InlineNode;
@@ -72,6 +73,11 @@ public final class RenderContext {
     /** @return the image resolver */
     public ImageResolver images() {
         return imageResolver;
+    }
+
+    /** @return the code syntax highlighter */
+    public SyntaxHighlighter highlighter() {
+        return theme.highlighter();
     }
 
     /** @return the base inline style for body paragraphs, honouring any inherited text colour */

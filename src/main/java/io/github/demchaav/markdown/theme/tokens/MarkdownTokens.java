@@ -14,13 +14,15 @@ import java.util.Objects;
  * @param spacing    gaps and paddings
  * @param shape      corner radii and line weights
  * @param page       page geometry
+ * @param syntax     code syntax-highlighting colours
  */
 public record MarkdownTokens(
         ColorTokens colors,
         TypographyTokens typography,
         SpacingTokens spacing,
         ShapeTokens shape,
-        PageTokens page) {
+        PageTokens page,
+        SyntaxColors syntax) {
 
     /** Validates every token group is present. */
     public MarkdownTokens {
@@ -29,6 +31,21 @@ public record MarkdownTokens(
         Objects.requireNonNull(spacing, "spacing");
         Objects.requireNonNull(shape, "shape");
         Objects.requireNonNull(page, "page");
+        Objects.requireNonNull(syntax, "syntax");
+    }
+
+    /**
+     * Creates tokens with the default (light) syntax palette.
+     *
+     * @param colors     colour palette
+     * @param typography fonts and the type scale
+     * @param spacing    gaps and paddings
+     * @param shape      corner radii and line weights
+     * @param page       page geometry
+     */
+    public MarkdownTokens(ColorTokens colors, TypographyTokens typography, SpacingTokens spacing,
+                          ShapeTokens shape, PageTokens page) {
+        this(colors, typography, spacing, shape, page, SyntaxColors.defaultLight());
     }
 
     /**
@@ -38,7 +55,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withColors(ColorTokens newColors) {
-        return new MarkdownTokens(newColors, typography, spacing, shape, page);
+        return new MarkdownTokens(newColors, typography, spacing, shape, page, syntax);
     }
 
     /**
@@ -48,7 +65,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withTypography(TypographyTokens newTypography) {
-        return new MarkdownTokens(colors, newTypography, spacing, shape, page);
+        return new MarkdownTokens(colors, newTypography, spacing, shape, page, syntax);
     }
 
     /**
@@ -58,7 +75,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withSpacing(SpacingTokens newSpacing) {
-        return new MarkdownTokens(colors, typography, newSpacing, shape, page);
+        return new MarkdownTokens(colors, typography, newSpacing, shape, page, syntax);
     }
 
     /**
@@ -68,6 +85,16 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withPage(PageTokens newPage) {
-        return new MarkdownTokens(colors, typography, spacing, shape, newPage);
+        return new MarkdownTokens(colors, typography, spacing, shape, newPage, syntax);
+    }
+
+    /**
+     * Returns a copy with different syntax-highlighting colours.
+     *
+     * @param newSyntax the replacement syntax palette
+     * @return a new {@code MarkdownTokens}
+     */
+    public MarkdownTokens withSyntax(SyntaxColors newSyntax) {
+        return new MarkdownTokens(colors, typography, spacing, shape, page, newSyntax);
     }
 }

@@ -154,11 +154,16 @@ etc.), never on Flexmark types.
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
-`inline code` / links, ordered & unordered (nested) lists, **task lists**, fenced
-code blocks, blockquotes, horizontal rules, images, **GFM tables** (with
-per-column alignment), **footnotes**, and `:::` custom blocks (e.g. callouts).
+`inline code` / links, ordered & unordered (nested) lists, **task lists**,
+**syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
+**GFM tables** (with per-column alignment), **footnotes**, and `:::` custom blocks
+(e.g. callouts).
 
-Planned: syntax highlighting and a DOCX backend (the engine already supports it).
+Code highlighting uses a pluggable `SyntaxHighlighter` SPI — the built-in
+`RegexSyntaxHighlighter` covers common languages with no extra dependency; plug a
+grammar-based one via `MarkdownTheme.builder().highlighter(...)`.
+
+Planned: a DOCX backend (the engine already supports it).
 
 ## License
 

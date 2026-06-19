@@ -6,6 +6,7 @@ import io.github.demchaav.markdown.theme.MarkdownTheme;
 import io.github.demchaav.markdown.theme.tokens.ColorTokens;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
+import io.github.demchaav.markdown.theme.tokens.SyntaxColors;
 import io.github.demchaav.markdown.theme.tokens.TypographyTokens;
 
 import java.util.List;
@@ -69,6 +70,7 @@ public final class GitHubTheme {
                 DocumentColor.rgb(47, 129, 247),   // accent
                 DocumentColor.rgb(13, 17, 23));    // surface
         return DefaultMarkdownTheme.of(new MarkdownTokens(
-                colors, typography(), PackSupport.spacing(10.0, 18.0), PackSupport.shape(6.0, 1.0), PackSupport.a4Page(56.0)));
+                colors, typography(), PackSupport.spacing(10.0, 18.0), PackSupport.shape(6.0, 1.0),
+                PackSupport.a4Page(56.0), SyntaxColors.defaultDark()));
     }
 }

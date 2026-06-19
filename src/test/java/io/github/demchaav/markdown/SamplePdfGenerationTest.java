@@ -54,10 +54,11 @@ class SamplePdfGenerationTest {
             ## Code
 
             ```java
-            MarkdownComposer composer = MarkdownComposer.builder()
+            // Build a themed composer and render Markdown to PDF.
+            var composer = MarkdownComposer.builder()
                     .theme(DefaultMarkdownTheme.light())
                     .build();
-            composer.render(markdown).writePdf(Path.of("out.pdf"));
+            int pages = composer.render(markdown).writePdf(Path.of("out.pdf"));
             ```
 
             ## Quotes and rules

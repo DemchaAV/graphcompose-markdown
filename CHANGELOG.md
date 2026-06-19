@@ -26,6 +26,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   custom block sits between a reference and its definition.
 - **List bullets** are now vector shapes that vary by nesting depth (disc → ring →
   diamond) instead of a flat `•`.
+- **Syntax highlighting.** Fenced code blocks are highlighted via a pluggable
+  `SyntaxHighlighter` SPI; the built-in `RegexSyntaxHighlighter` covers ~15 common
+  languages (keywords / strings / comments / numbers / annotations / call names) with
+  no extra dependency. Adds the `SyntaxColors` token group (light + dark palettes) and
+  `MarkdownTheme.builder().highlighter(...)` to plug a grammar-based highlighter.
+  Indentation is preserved (non-breaking spaces); unknown/`text` languages stay plain.
 - **Render from a parsed tree.** `MarkdownComposer.render(...)` overloads accept an
   already-parsed Flexmark `Document` (bring your own parser/extensions) or a pre-built
   `MarkdownDocument` semantic model — no string round-trip or file.

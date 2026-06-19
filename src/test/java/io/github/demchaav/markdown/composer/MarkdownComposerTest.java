@@ -103,6 +103,15 @@ class MarkdownComposerTest {
     }
 
     @Test
+    void rendersAHighlightedCodeBlockToPdf() throws Exception {
+        String md = "```java\n// a note\nint x = 0xFF;\nString s = \"hi\";\n@Override void f() {}\n```";
+
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.dark()).render(md).toPdfBytes();
+
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void rendersEmptyDocumentWithoutError() throws Exception {
         byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light())
                 .render("")
