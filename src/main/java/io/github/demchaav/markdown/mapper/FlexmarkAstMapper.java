@@ -1,6 +1,8 @@
 package io.github.demchaav.markdown.mapper;
 
 import com.vladsch.flexmark.ast.*;
+import com.vladsch.flexmark.ext.footnotes.Footnote;
+import com.vladsch.flexmark.ext.footnotes.FootnoteBlock;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem;
 import com.vladsch.flexmark.ext.tables.*;
@@ -10,6 +12,8 @@ import io.github.demchaav.markdown.model.*;
 import io.github.demchaav.markdown.model.inline.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +33,13 @@ public final class FlexmarkAstMapper {
             Map.entry("quot", "\""), Map.entry("apos", "'"), Map.entry("nbsp", " "),
             Map.entry("copy", "©"), Map.entry("reg", "®"), Map.entry("trade", "™"),
             Map.entry("mdash", "—"), Map.entry("ndash", "–"), Map.entry("hellip", "…"));
+
+    // Footnote label -> number, assigned by first-reference order, scoped to the current
+    // mapping call. Flexmark does not populate footnote ordinals at parse time, and the
+    // CustomBlockParser may map the document in several segments, so we number footnotes
+    // ourselves over the whole document and resolve references by label (not node identity).
+    private final ThreadLocal<Map<String, Integer>> footnoteNumbers =
+            ThreadLocal.withInitial(Map::of);
 
     private static TableRow firstRow(Node section) {
         for (Node child = section.getFirstChild(); child != null; child = child.getNext()) {
@@ -111,7 +122,88 @@ public final class FlexmarkAstMapper {
      * @return the mapped semantic document
      */
     public MarkdownDocument map(com.vladsch.flexmark.util.ast.Document document) {
-        return new MarkdownDocument(mapBlocks(document));
+        Map<String, Integer> numbers = numberFootnotes(document);
+        List<MarkdownNode> blocks = new ArrayList<>(mapSegment(document, numbers));
+        List<FootnoteDefinitionNode> footnotes = footnoteDefinitions(document, numbers);
+        if (!footnotes.isEmpty()) {
+            blocks.add(new FootnotesNode(footnotes));
+        }
+        return new MarkdownDocument(blocks);
+    }
+
+    /**
+     * Maps the blocks of one parsed segment, resolving footnote references against the
+     * given label→number map. Does not collect footnote definitions (the caller appends a
+     * single document-wide {@link FootnotesNode}).
+     *
+     * @param document        the parsed (sub)document
+     * @param footnoteNumbers the document-wide footnote label→number map
+     * @return the mapped blocks
+     */
+    public List<MarkdownNode> mapSegment(com.vladsch.flexmark.util.ast.Document document,
+                                         Map<String, Integer> footnoteNumbers) {
+        this.footnoteNumbers.set(footnoteNumbers);
+        try {
+            return mapBlocks(document);
+        } finally {
+            this.footnoteNumbers.remove();
+        }
+    }
+
+    /**
+     * Numbers every referenced footnote in a document by the order its first reference
+     * appears. Computed over the whole document so segmented mapping stays consistent.
+     *
+     * @param document the full parsed document
+     * @return a footnote label→number map
+     */
+    public Map<String, Integer> numberFootnotes(com.vladsch.flexmark.util.ast.Document document) {
+        Map<String, Integer> numbers = new LinkedHashMap<>();
+        assignFootnoteNumbers(document, numbers, new int[]{1});
+        return numbers;
+    }
+
+    /**
+     * Collects the footnote definitions of a document, numbered via the given map.
+     *
+     * @param document the full parsed document
+     * @param numbers  the footnote label→number map
+     * @return the definitions, ordered by number
+     */
+    public List<FootnoteDefinitionNode> footnoteDefinitions(com.vladsch.flexmark.util.ast.Document document,
+                                                            Map<String, Integer> numbers) {
+        this.footnoteNumbers.set(numbers);
+        try {
+            List<FootnoteDefinitionNode> definitions = new ArrayList<>();
+            for (Node child = document.getFirstChild(); child != null; child = child.getNext()) {
+                if (child instanceof FootnoteBlock block) {
+                    Integer number = numbers.get(footnoteLabel(block.getText()));
+                    if (number != null) {
+                        definitions.add(new FootnoteDefinitionNode(number, mapBlocks(block)));
+                    }
+                }
+            }
+            definitions.sort(Comparator.comparingInt(FootnoteDefinitionNode::number));
+            return definitions;
+        } finally {
+            this.footnoteNumbers.remove();
+        }
+    }
+
+    private void assignFootnoteNumbers(Node node, Map<String, Integer> numbers, int[] next) {
+        for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+            if (child instanceof Footnote footnote) {
+                String label = footnoteLabel(footnote.getText());
+                if (!label.isEmpty() && !numbers.containsKey(label)) {
+                    numbers.put(label, next[0]++);
+                }
+            }
+            assignFootnoteNumbers(child, numbers, next);
+        }
+    }
+
+    private static String footnoteLabel(BasedSequence text) {
+        return text == null ? "" : text.toString().trim();
     }
 
     private List<MarkdownNode> mapBlocks(Node parent) {
@@ -152,6 +244,9 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof TableBlock table) {
             return mapTable(table);
+        }
+        if (node instanceof FootnoteBlock) {
+            return null; // definitions are collected and rendered as a Notes section at the end
         }
         // Unsupported block (raw HTML block, etc.) — skipped for now.
         return null;
@@ -263,6 +358,10 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof HardLineBreak) {
             return new LineBreakRun(true);
+        }
+        if (node instanceof Footnote footnote) {
+            Integer number = footnoteNumbers.get().get(footnoteLabel(footnote.getText()));
+            return number != null ? new FootnoteRefRun(number) : null;
         }
         if (node instanceof HtmlEntity entity) {
             return new TextRun(decodeEntity(entity.getChars().toString()));

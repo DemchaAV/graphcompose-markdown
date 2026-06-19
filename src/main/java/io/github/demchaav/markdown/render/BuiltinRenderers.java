@@ -19,6 +19,8 @@ import com.demcha.compose.document.table.DocumentTableTextAnchor;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.ColumnAlignment;
 import io.github.demchaav.markdown.model.CustomBlockNode;
+import io.github.demchaav.markdown.model.FootnoteDefinitionNode;
+import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.ImageNode;
 import io.github.demchaav.markdown.model.ListItemNode;
@@ -66,6 +68,7 @@ public final class BuiltinRenderers {
         registry.register(ImageNode.class, new ImageRenderer());
         registry.register(TableNode.class, new TableRenderer());
         registry.register(CustomBlockNode.class, new CalloutRenderer());
+        registry.register(FootnotesNode.class, new FootnotesRenderer());
     }
 
     /** Renders a heading as a styled paragraph with space above it. */
@@ -380,6 +383,62 @@ public final class BuiltinRenderers {
                 default:
                     return fallback;
             }
+        }
+    }
+
+    /** Renders the document-end "Notes" section: a divider, a title, and the numbered definitions. */
+    public static final class FootnotesRenderer implements NodeRenderer<FootnotesNode> {
+        @Override
+        public void render(FootnotesNode node, SectionBuilder host, RenderContext ctx) {
+            if (node.definitions().isEmpty()) {
+                return;
+            }
+            MarkdownStyles.RuleStyle rule = ctx.styles().rule();
+            double bodySize = ctx.tokens().typography().bodySize();
+            double lineSpacing = ctx.tokens().typography().lineSpacing();
+            DocumentColor noteColor = ctx.tokens().colors().muted();
+            DocumentColor accent = ctx.tokens().colors().link();
+
+            InlineStyle base = ctx.styles().paragraphInline();
+            InlineStyle noteInline = new InlineStyle(base.family(), bodySize * 0.92, noteColor, false, false,
+                    base.codeFamily(), base.codeSize() * 0.92, base.codeColor(), base.linkColor(), base.underlineLinks());
+            DocumentTextStyle markerStyle = DocumentTextStyle.builder()
+                    .fontName(base.family().resolve(false, false)).size(bodySize * 0.92).color(accent)
+                    .decoration(DocumentTextDecoration.DEFAULT).build();
+            DocumentTextStyle titleStyle = DocumentTextStyle.builder()
+                    .fontName(ctx.tokens().typography().headingFamily().resolve(true, false))
+                    .size(bodySize * 1.05).color(ctx.tokens().colors().heading())
+                    .decoration(DocumentTextDecoration.DEFAULT).build();
+            double gap = ctx.styles().blockSpacing();
+
+            host.addSection(notes -> {
+                notes.spacing(ctx.tokens().spacing().listItemSpacing());
+                notes.margin(new DocumentInsets(gap, 0, 0, 0));
+                notes.addLine(line -> line.horizontal(rule.width()).color(rule.color()).thickness(rule.thickness()));
+                notes.addParagraph(p -> p.text("Notes").textStyle(titleStyle));
+                for (FootnoteDefinitionNode definition : node.definitions()) {
+                    notes.addSection(item -> {
+                        item.spacing(2);
+                        List<MarkdownNode> content = definition.content();
+                        int start = 0;
+                        if (!content.isEmpty() && content.get(0) instanceof ParagraphNode first) {
+                            RichText rich = RichText.empty();
+                            rich.style("[" + definition.number() + "]  ", markerStyle);
+                            ctx.inline().appendInto(rich, first.content(), noteInline);
+                            item.addParagraph(p -> p.rich(rich).lineSpacing(lineSpacing));
+                            start = 1;
+                        } else {
+                            RichText rich = RichText.empty();
+                            rich.style("[" + definition.number() + "]", markerStyle);
+                            item.addParagraph(p -> p.rich(rich));
+                        }
+                        RenderContext childCtx = ctx.withTextColor(noteColor);
+                        for (int i = start; i < content.size(); i++) {
+                            childCtx.renderBlock(content.get(i), item);
+                        }
+                    });
+                }
+            });
         }
     }
 }

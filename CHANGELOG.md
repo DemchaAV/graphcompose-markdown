@@ -19,6 +19,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
   `ListItemNode.checked` carries the checkbox state and the list renderer draws a
   real inline checkbox (`RichText.checkbox` — a rounded frame with a centred
   check) in place of the bullet.
+- **Footnotes.** GFM `[^id]` references (via `flexmark-ext-footnotes`) render as a
+  small accent-coloured `[N]` on the baseline (the engine has no superscript), and
+  definitions are collected into a document-end "Notes" section (`FootnotesNode`).
+  Numbering is document-global, so references resolve correctly even when a `:::`
+  custom block sits between a reference and its definition.
+- **List bullets** are now vector shapes that vary by nesting depth (disc → ring →
+  diamond) instead of a flat `•`.
 - **Rendering polish.** Code/quote/callout panels are kept whole across page
   breaks (`SectionBuilder.keepTogether()`); blockquotes gain a plate background;
   table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read

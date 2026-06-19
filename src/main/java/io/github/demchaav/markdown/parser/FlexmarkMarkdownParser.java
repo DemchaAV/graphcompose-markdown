@@ -1,5 +1,6 @@
 package io.github.demchaav.markdown.parser;
 
+import com.vladsch.flexmark.ext.footnotes.FootnoteExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
@@ -25,7 +26,8 @@ public final class FlexmarkMarkdownParser {
     public FlexmarkMarkdownParser() {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, List.of(
-                StrikethroughExtension.create(), TablesExtension.create(), TaskListExtension.create()));
+                StrikethroughExtension.create(), TablesExtension.create(),
+                TaskListExtension.create(), FootnoteExtension.create()));
         this.parser = Parser.builder(options).build();
     }
 
