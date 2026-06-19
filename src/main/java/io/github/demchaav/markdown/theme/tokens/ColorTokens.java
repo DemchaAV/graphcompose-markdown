@@ -11,13 +11,14 @@ import java.util.Objects;
  * @param muted          secondary/subdued text
  * @param heading        heading text colour
  * @param link           hyperlink colour
- * @param code           inline code text colour
- * @param codeBackground fenced code block / inline code background
- * @param quoteBar       blockquote left accent bar
- * @param quoteText      blockquote text colour
- * @param rule           horizontal rule / divider colour
- * @param accent         general accent (default callout bar, emphasis)
- * @param surface        page background; may be {@code null} for no fill
+ * @param code               inline code text colour
+ * @param codeBackground     fenced code block / inline code background (also the quote plate)
+ * @param tableRowBackground table body cell background
+ * @param quoteBar           blockquote left accent bar
+ * @param quoteText          blockquote text colour
+ * @param rule               horizontal rule / divider colour
+ * @param accent             general accent (default callout bar, emphasis)
+ * @param surface            page background; may be {@code null} for no fill
  */
 public record ColorTokens(
         DocumentColor text,
@@ -26,6 +27,7 @@ public record ColorTokens(
         DocumentColor link,
         DocumentColor code,
         DocumentColor codeBackground,
+        DocumentColor tableRowBackground,
         DocumentColor quoteBar,
         DocumentColor quoteText,
         DocumentColor rule,
@@ -40,6 +42,7 @@ public record ColorTokens(
         Objects.requireNonNull(link, "link");
         Objects.requireNonNull(code, "code");
         Objects.requireNonNull(codeBackground, "codeBackground");
+        Objects.requireNonNull(tableRowBackground, "tableRowBackground");
         Objects.requireNonNull(quoteBar, "quoteBar");
         Objects.requireNonNull(quoteText, "quoteText");
         Objects.requireNonNull(rule, "rule");
@@ -54,7 +57,7 @@ public record ColorTokens(
      */
     public ColorTokens withCodeBackground(DocumentColor newCodeBackground) {
         return new ColorTokens(text, muted, heading, link, code, newCodeBackground,
-                quoteBar, quoteText, rule, accent, surface);
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
     }
 
     /**
@@ -65,6 +68,6 @@ public record ColorTokens(
      */
     public ColorTokens withAccent(DocumentColor newAccent) {
         return new ColorTokens(text, muted, heading, link, code, codeBackground,
-                quoteBar, quoteText, rule, newAccent, surface);
+                tableRowBackground, quoteBar, quoteText, rule, newAccent, surface);
     }
 }

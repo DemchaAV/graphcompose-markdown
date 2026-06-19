@@ -4,6 +4,18 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
+## v0.2.0 — Planned
+
+### Public API
+- **GFM tables.** `TableNode` / `TableCellNode` / `ColumnAlignment` in the model,
+  parsed via `flexmark-ext-tables` and rendered by a `TableRenderer` (even
+  fixed-width columns, styled header row, per-column alignment). Adds
+  `MarkdownStyles.TableStyle` and a `SpacingTokens.tableCellPadding` token.
+
+### Tests
+- Table mapper test (alignments / header / rows) and a table render smoke test;
+  the sample document now includes a table.
+
 ## v0.1.0 — Planned
 
 First public preview: a themeable Markdown → GraphCompose document composer.

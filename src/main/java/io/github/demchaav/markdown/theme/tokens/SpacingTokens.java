@@ -13,6 +13,7 @@ package io.github.demchaav.markdown.theme.tokens;
  * @param quoteAccentWidth    width of the blockquote left accent bar
  * @param calloutPadding      inner padding of a custom-block callout
  * @param calloutAccentWidth  width of the callout left accent bar
+ * @param tableCellPadding    inner padding of a table cell
  */
 public record SpacingTokens(
         double blockSpacing,
@@ -24,5 +25,6 @@ public record SpacingTokens(
         double quotePadding,
         double quoteAccentWidth,
         double calloutPadding,
-        double calloutAccentWidth) {
+        double calloutAccentWidth,
+        double tableCellPadding) {
 }

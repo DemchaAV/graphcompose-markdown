@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.mapper;
 
 import io.github.demchaav.markdown.model.CodeBlockNode;
+import io.github.demchaav.markdown.model.ColumnAlignment;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.ImageNode;
 import io.github.demchaav.markdown.model.ListNode;
@@ -8,6 +9,7 @@ import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.QuoteNode;
+import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.model.ThematicBreakNode;
 import io.github.demchaav.markdown.model.inline.CodeRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
@@ -130,6 +132,25 @@ class FlexmarkAstMapperTest {
         MarkdownDocument inline = parse("text ![icon](icon.png) more");
         ParagraphNode p = (ParagraphNode) inline.blocks().get(0);
         assertThat(p.content()).anySatisfy(n -> assertThat(n).isInstanceOf(ImageRun.class));
+    }
+
+    @Test
+    void mapsTableWithAlignmentsHeaderAndRows() {
+        MarkdownDocument doc = parse("""
+                | Name | Score |
+                |:-----|------:|
+                | Ann  | 10    |
+                | Bob  | 7     |
+                """);
+
+        TableNode table = (TableNode) doc.blocks().get(0);
+        assertThat(table.columnCount()).isEqualTo(2);
+        assertThat(table.alignments()).containsExactly(ColumnAlignment.LEFT, ColumnAlignment.RIGHT);
+        assertThat(plain(table.header().get(0).content())).isEqualTo("Name");
+        assertThat(plain(table.header().get(1).content())).isEqualTo("Score");
+        assertThat(table.bodyRows()).hasSize(2);
+        assertThat(plain(table.bodyRows().get(0).get(0).content())).isEqualTo("Ann");
+        assertThat(plain(table.bodyRows().get(1).get(1).content())).isEqualTo("7");
     }
 
     /** Flattens the literal text of a list of inline runs, descending into decorations. */

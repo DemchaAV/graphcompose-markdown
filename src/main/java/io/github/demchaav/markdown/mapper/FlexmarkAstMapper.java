@@ -1,48 +1,12 @@
 package io.github.demchaav.markdown.mapper;
 
-import com.vladsch.flexmark.ast.AutoLink;
-import com.vladsch.flexmark.ast.BlockQuote;
-import com.vladsch.flexmark.ast.BulletList;
-import com.vladsch.flexmark.ast.Code;
-import com.vladsch.flexmark.ast.Emphasis;
-import com.vladsch.flexmark.ast.FencedCodeBlock;
-import com.vladsch.flexmark.ast.HardLineBreak;
-import com.vladsch.flexmark.ast.Heading;
-import com.vladsch.flexmark.ast.HtmlEntity;
-import com.vladsch.flexmark.ast.HtmlInline;
-import com.vladsch.flexmark.ast.Image;
-import com.vladsch.flexmark.ast.IndentedCodeBlock;
-import com.vladsch.flexmark.ast.Link;
-import com.vladsch.flexmark.ast.ListItem;
-import com.vladsch.flexmark.ast.MailLink;
-import com.vladsch.flexmark.ast.OrderedList;
-import com.vladsch.flexmark.ast.Paragraph;
-import com.vladsch.flexmark.ast.SoftLineBreak;
-import com.vladsch.flexmark.ast.StrongEmphasis;
-import com.vladsch.flexmark.ast.Text;
-import com.vladsch.flexmark.ast.ThematicBreak;
+import com.vladsch.flexmark.ast.*;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
+import com.vladsch.flexmark.ext.tables.*;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
-import io.github.demchaav.markdown.model.CodeBlockNode;
-import io.github.demchaav.markdown.model.HeadingNode;
-import io.github.demchaav.markdown.model.ImageNode;
-import io.github.demchaav.markdown.model.ListItemNode;
-import io.github.demchaav.markdown.model.ListNode;
-import io.github.demchaav.markdown.model.MarkdownDocument;
-import io.github.demchaav.markdown.model.MarkdownNode;
-import io.github.demchaav.markdown.model.ParagraphNode;
-import io.github.demchaav.markdown.model.QuoteNode;
-import io.github.demchaav.markdown.model.ThematicBreakNode;
-import io.github.demchaav.markdown.model.inline.CodeRun;
-import io.github.demchaav.markdown.model.inline.EmphasisRun;
-import io.github.demchaav.markdown.model.inline.ImageRun;
-import io.github.demchaav.markdown.model.inline.InlineNode;
-import io.github.demchaav.markdown.model.inline.LineBreakRun;
-import io.github.demchaav.markdown.model.inline.LinkRun;
-import io.github.demchaav.markdown.model.inline.StrikethroughRun;
-import io.github.demchaav.markdown.model.inline.StrongRun;
-import io.github.demchaav.markdown.model.inline.TextRun;
+import io.github.demchaav.markdown.model.*;
+import io.github.demchaav.markdown.model.inline.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +28,80 @@ public final class FlexmarkAstMapper {
             Map.entry("quot", "\""), Map.entry("apos", "'"), Map.entry("nbsp", " "),
             Map.entry("copy", "©"), Map.entry("reg", "®"), Map.entry("trade", "™"),
             Map.entry("mdash", "—"), Map.entry("ndash", "–"), Map.entry("hellip", "…"));
+
+    private static TableRow firstRow(Node section) {
+        for (Node child = section.getFirstChild(); child != null; child = child.getNext()) {
+            if (child instanceof TableRow row) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private static ColumnAlignment alignmentOf(TableCell cell) {
+        TableCell.Alignment alignment = cell.getAlignment();
+        if (alignment == null) {
+            return ColumnAlignment.NONE;
+        }
+        switch (alignment) {
+            case LEFT:
+                return ColumnAlignment.LEFT;
+            case CENTER:
+                return ColumnAlignment.CENTER;
+            case RIGHT:
+                return ColumnAlignment.RIGHT;
+            default:
+                return ColumnAlignment.NONE;
+        }
+    }
+
+    private static int clampLevel(int level) {
+        return Math.max(1, Math.min(6, level));
+    }
+
+    private static String firstToken(BasedSequence info) {
+        if (info == null || info.isNull()) {
+            return "";
+        }
+        String value = info.unescape().trim();
+        int space = value.indexOf(' ');
+        return space < 0 ? value : value.substring(0, space);
+    }
+
+    private static String titleOrNull(BasedSequence title) {
+        if (title == null || title.isNull() || title.isBlank()) {
+            return null;
+        }
+        return title.unescape();
+    }
+
+    private static String stripTrailingNewline(String code) {
+        if (code.endsWith("\r\n")) {
+            return code.substring(0, code.length() - 2);
+        }
+        if (code.endsWith("\n") || code.endsWith("\r")) {
+            return code.substring(0, code.length() - 1);
+        }
+        return code;
+    }
+
+    private static String decodeEntity(String entity) {
+        if (!entity.startsWith("&") || !entity.endsWith(";") || entity.length() < 3) {
+            return entity;
+        }
+        String body = entity.substring(1, entity.length() - 1);
+        try {
+            if (body.startsWith("#x") || body.startsWith("#X")) {
+                return new String(Character.toChars(Integer.parseInt(body.substring(2), 16)));
+            }
+            if (body.startsWith("#")) {
+                return new String(Character.toChars(Integer.parseInt(body.substring(1))));
+            }
+        } catch (IllegalArgumentException ignored) {
+            return entity;
+        }
+        return NAMED_ENTITIES.getOrDefault(body, entity);
+    }
 
     /**
      * Maps a Flexmark document node into a {@link MarkdownDocument}.
@@ -111,8 +149,50 @@ public final class FlexmarkAstMapper {
         if (node instanceof ThematicBreak) {
             return new ThematicBreakNode();
         }
-        // Unsupported block (raw HTML block, table, etc.) — skipped for now.
+        if (node instanceof TableBlock table) {
+            return mapTable(table);
+        }
+        // Unsupported block (raw HTML block, etc.) — skipped for now.
         return null;
+    }
+
+    private MarkdownNode mapTable(TableBlock table) {
+        List<ColumnAlignment> alignments = new ArrayList<>();
+        List<TableCellNode> header = new ArrayList<>();
+        List<List<TableCellNode>> bodyRows = new ArrayList<>();
+
+        for (Node section = table.getFirstChild(); section != null; section = section.getNext()) {
+            if (section instanceof TableHead head) {
+                TableRow headerRow = firstRow(head);
+                if (headerRow != null) {
+                    for (Node cell = headerRow.getFirstChild(); cell != null; cell = cell.getNext()) {
+                        if (cell instanceof TableCell tableCell) {
+                            header.add(new TableCellNode(mapInlines(tableCell)));
+                            alignments.add(alignmentOf(tableCell));
+                        }
+                    }
+                }
+            } else if (section instanceof TableBody body) {
+                for (Node row = body.getFirstChild(); row != null; row = row.getNext()) {
+                    if (row instanceof TableRow tableRow) {
+                        bodyRows.add(mapRow(tableRow));
+                    }
+                }
+            }
+        }
+
+        // A GFM table is only valid with a header (which defines the columns).
+        return alignments.isEmpty() ? null : new TableNode(alignments, header, bodyRows);
+    }
+
+    private List<TableCellNode> mapRow(TableRow row) {
+        List<TableCellNode> cells = new ArrayList<>();
+        for (Node cell = row.getFirstChild(); cell != null; cell = cell.getNext()) {
+            if (cell instanceof TableCell tableCell) {
+                cells.add(new TableCellNode(mapInlines(tableCell)));
+            }
+        }
+        return cells;
     }
 
     private MarkdownNode mapParagraph(Paragraph paragraph) {
@@ -193,53 +273,5 @@ public final class FlexmarkAstMapper {
             return null; // other inline HTML is dropped for now
         }
         return null;
-    }
-
-    private static int clampLevel(int level) {
-        return Math.max(1, Math.min(6, level));
-    }
-
-    private static String firstToken(BasedSequence info) {
-        if (info == null || info.isNull()) {
-            return "";
-        }
-        String value = info.unescape().trim();
-        int space = value.indexOf(' ');
-        return space < 0 ? value : value.substring(0, space);
-    }
-
-    private static String titleOrNull(BasedSequence title) {
-        if (title == null || title.isNull() || title.isBlank()) {
-            return null;
-        }
-        return title.unescape();
-    }
-
-    private static String stripTrailingNewline(String code) {
-        if (code.endsWith("\r\n")) {
-            return code.substring(0, code.length() - 2);
-        }
-        if (code.endsWith("\n") || code.endsWith("\r")) {
-            return code.substring(0, code.length() - 1);
-        }
-        return code;
-    }
-
-    private static String decodeEntity(String entity) {
-        if (!entity.startsWith("&") || !entity.endsWith(";") || entity.length() < 3) {
-            return entity;
-        }
-        String body = entity.substring(1, entity.length() - 1);
-        try {
-            if (body.startsWith("#x") || body.startsWith("#X")) {
-                return new String(Character.toChars(Integer.parseInt(body.substring(2), 16)));
-            }
-            if (body.startsWith("#")) {
-                return new String(Character.toChars(Integer.parseInt(body.substring(1))));
-            }
-        } catch (IllegalArgumentException ignored) {
-            return entity;
-        }
-        return NAMED_ENTITIES.getOrDefault(body, entity);
     }
 }
