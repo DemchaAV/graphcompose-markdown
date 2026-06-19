@@ -40,6 +40,27 @@ class RendererPackTest {
     }
 
     @Test
+    void customBlockRendererWorksOnAThemeBuiltFromScratch() throws Exception {
+        AtomicBoolean rendered = new AtomicBoolean(false);
+        NodeRenderer<CustomBlockNode> chart = (node, host, ctx) -> {
+            rendered.set(true);
+            host.addParagraph(p -> p.text("CHART"));
+        };
+
+        // No StandardPack and no pre-registered dispatcher: customBlock(...) must still
+        // wire the dispatcher so the renderer is actually reached.
+        MarkdownTheme theme = MarkdownTheme.builder()
+                .tokens(DefaultMarkdownTheme.light().tokens())
+                .customBlock("chart", chart)
+                .build();
+
+        byte[] pdf = MarkdownComposer.create(theme).render(":::chart\ndata\n:::").toPdfBytes();
+
+        assertThat(rendered).as("custom block renders without StandardPack").isTrue();
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void rendererPackComposesIntoATheme() throws Exception {
         AtomicInteger applied = new AtomicInteger();
         RendererPack metricPack = registry -> {

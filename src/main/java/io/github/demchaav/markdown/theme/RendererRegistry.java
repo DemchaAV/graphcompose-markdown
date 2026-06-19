@@ -3,6 +3,7 @@ package io.github.demchaav.markdown.theme;
 import com.demcha.compose.document.dsl.SectionBuilder;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
+import io.github.demchaav.markdown.render.BuiltinRenderers;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.render.RenderContext;
 
@@ -67,6 +68,11 @@ public final class RendererRegistry {
         customBlockRenderers.put(
                 Objects.requireNonNull(type, "type").toLowerCase(Locale.ROOT),
                 Objects.requireNonNull(renderer, "renderer"));
+        // Ensure CustomBlockNode actually routes through the type dispatcher, so a custom
+        // block renderer is reached even on a theme assembled without StandardPack.
+        // putIfAbsent: keep an existing dispatcher (from StandardPack) or an explicit
+        // CustomBlockNode override the caller registered themselves.
+        renderers.putIfAbsent(CustomBlockNode.class, new BuiltinRenderers.CustomBlockDispatchRenderer());
         return this;
     }
 
