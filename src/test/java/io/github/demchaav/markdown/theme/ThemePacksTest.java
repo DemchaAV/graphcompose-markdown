@@ -60,7 +60,7 @@ class ThemePacksTest {
 
     @Test
     void everyPackRendersTheSameContentToPdf() throws Exception {
-        Path outDir = Path.of("target", "generated-pdfs", "themes");
+        Path outDir = Path.of("preview", "themes");
         Files.createDirectories(outDir);
 
         for (Map.Entry<String, MarkdownTheme> entry : packs().entrySet()) {

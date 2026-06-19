@@ -15,6 +15,10 @@ and the project follows [Semantic Versioning](https://semver.org/).
   `GitHubTheme` (light/dark), `AcademicTheme`, `MinimalTheme`, `BusinessReportTheme`.
   Adds `DefaultMarkdownTheme.of(MarkdownTokens)` to assemble a theme from a token
   bundle with the standard renderers.
+- **Task lists.** GFM `- [ ]` / `- [x]` items via `flexmark-ext-gfm-tasklist`;
+  `ListItemNode.checked` carries the checkbox state and the list renderer draws a
+  real inline checkbox (`RichText.checkbox` — a rounded frame with a centred
+  check) in place of the bullet.
 - **Rendering polish.** Code/quote/callout panels are kept whole across page
   breaks (`SectionBuilder.keepTogether()`); blockquotes gain a plate background;
   table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read

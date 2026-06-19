@@ -103,6 +103,28 @@ class FlexmarkAstMapperTest {
     }
 
     @Test
+    void mapsTaskListItemsWithCheckboxState() {
+        MarkdownDocument doc = parse("""
+                - [ ] todo
+                - [x] done
+                - plain
+                """);
+
+        ListNode list = (ListNode) doc.blocks().get(0);
+        assertThat(list.items()).hasSize(3);
+
+        assertThat(list.items().get(0).isTask()).isTrue();
+        assertThat(list.items().get(0).checked()).isFalse();
+        assertThat(list.items().get(1).checked()).isTrue();
+        assertThat(list.items().get(2).isTask()).isFalse();
+        assertThat(list.items().get(2).checked()).isNull();
+
+        // The [ ] / [x] marker is consumed by the parser, not left in the text.
+        ParagraphNode firstText = (ParagraphNode) list.items().get(0).content().get(0);
+        assertThat(plain(firstText.content())).isEqualTo("todo");
+    }
+
+    @Test
     void mapsFencedCodeBlockWithLanguage() {
         MarkdownDocument doc = parse("```java\nint x = 1;\nSystem.out.println(x);\n```");
 

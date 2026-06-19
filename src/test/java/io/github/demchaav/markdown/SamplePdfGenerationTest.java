@@ -45,6 +45,12 @@ class SamplePdfGenerationTest {
             2. Keep their numbers
             3. Across the list
 
+            Task lists track progress:
+
+            - [x] Ship GFM tables
+            - [x] Add theme packs
+            - [ ] Wire syntax highlighting
+
             ## Code
 
             ```java
@@ -81,7 +87,7 @@ class SamplePdfGenerationTest {
 
     @Test
     void writesLightAndDarkSamplePdfs() throws Exception {
-        Path outDir = Path.of("target", "generated-pdfs");
+        Path outDir = Path.of("preview");
         Files.createDirectories(outDir);
 
         Path light = outDir.resolve("markdown-sample-light.pdf");

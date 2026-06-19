@@ -81,6 +81,14 @@ class MarkdownComposerTest {
     }
 
     @Test
+    void rendersTaskListToPdf() throws Exception {
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light())
+                .render("- [x] done\n- [ ] todo\n- plain item")
+                .toPdfBytes();
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void rendersGfmTableToPdf() throws Exception {
         String md = """
                 | A | B | C |

@@ -119,12 +119,12 @@ MarkdownComposer.create(GitHubTheme.dark()).render(md).writePdf(path);
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
-`inline code` / links, ordered & unordered (nested) lists, fenced code blocks,
-blockquotes, horizontal rules, images, **GFM tables** (with per-column
-alignment), and `:::` custom blocks (e.g. callouts).
+`inline code` / links, ordered & unordered (nested) lists, **task lists**, fenced
+code blocks, blockquotes, horizontal rules, images, **GFM tables** (with
+per-column alignment), and `:::` custom blocks (e.g. callouts).
 
-Planned: task lists, footnotes, syntax highlighting, additional theme packs, and
-a DOCX backend (the engine already supports it).
+Planned: footnotes, syntax highlighting, and a DOCX backend (the engine already
+supports it).
 
 ## License
 
