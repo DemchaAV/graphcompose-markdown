@@ -53,9 +53,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   as a cohesive block in dark themes.
 
 ### Tests
+- **Fixture-driven smoke tests.** Markdown fixtures under
+  `src/test/resources/markdown/` (`basic`, `lists`, `table`, `code`, `quote`,
+  `mixed-inline`, and a `master` page that exercises the whole parser). Each is
+  asserted to parse, render to a non-empty multi-page PDF, and carry its expected
+  text into the output (extracted with PDFBox `PDFTextStripper`). The master page is
+  also rendered through every theme pack and is now the single source for the preview
+  PDFs.
 - Table mapper test (alignments / header / rows) and a table render smoke test;
-  a theme-packs test renders the same content through every pack; the sample
-  document now includes a table.
+  a theme-packs test renders the same content through every pack.
 
 ## v0.1.0 — Planned
 
