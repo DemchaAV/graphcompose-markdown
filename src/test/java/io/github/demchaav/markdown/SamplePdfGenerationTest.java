@@ -45,6 +45,12 @@ class SamplePdfGenerationTest {
             2. Keep their numbers
             3. Across the list
 
+            Task lists track progress:
+
+            - [x] Ship GFM tables
+            - [x] Add theme packs
+            - [ ] Wire syntax highlighting
+
             ## Code
 
             ```java

@@ -184,7 +184,12 @@ public final class BuiltinRenderers {
                 listSection.spacing(style.itemSpacing());
                 int number = node.startNumber();
                 for (ListItemNode item : node.items()) {
-                    String marker = node.ordered() ? (number + ".") : style.bulletGlyph();
+                    String marker;
+                    if (item.isTask()) {
+                        marker = Boolean.TRUE.equals(item.checked()) ? "[x]" : "[ ]";
+                    } else {
+                        marker = node.ordered() ? (number + ".") : style.bulletGlyph();
+                    }
                     renderItem(item, listSection, ctx, marker, markerStyle, indent, depth);
                     number++;
                 }
