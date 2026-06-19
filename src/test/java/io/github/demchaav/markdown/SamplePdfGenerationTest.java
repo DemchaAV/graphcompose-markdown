@@ -87,7 +87,7 @@ class SamplePdfGenerationTest {
 
     @Test
     void writesLightAndDarkSamplePdfs() throws Exception {
-        Path outDir = Path.of("target", "generated-pdfs");
+        Path outDir = Path.of("preview");
         Files.createDirectories(outDir);
 
         Path light = outDir.resolve("markdown-sample-light.pdf");

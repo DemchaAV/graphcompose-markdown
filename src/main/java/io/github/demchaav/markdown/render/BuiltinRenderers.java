@@ -6,10 +6,12 @@ import com.demcha.compose.document.dsl.SectionBuilder;
 import com.demcha.compose.document.image.DocumentImageFitMode;
 import com.demcha.compose.document.node.TextAlign;
 import com.demcha.compose.document.style.DocumentColor;
+import com.demcha.compose.document.style.DocumentCornerRadius;
 import com.demcha.compose.document.style.DocumentInsets;
 import com.demcha.compose.document.style.DocumentStroke;
 import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
+import com.demcha.compose.document.style.ShapeOutline;
 import com.demcha.compose.document.table.DocumentTableCell;
 import com.demcha.compose.document.table.DocumentTableColumn;
 import com.demcha.compose.document.table.DocumentTableStyle;
@@ -124,7 +126,8 @@ public final class BuiltinRenderers {
             double padding = style.padding();
             host.addSection(quote -> {
                 quote.fillColor(style.background());
-                quote.cornerRadius(style.cornerRadius());
+                // Round only the right corners so the plate sits flush against the left accent bar.
+                quote.cornerRadius(DocumentCornerRadius.right(style.cornerRadius()));
                 quote.accentLeft(style.barColor(), style.barWidth());
                 quote.padding(new DocumentInsets(padding, padding, padding, padding + style.barWidth()));
                 quote.keepTogether();
@@ -233,7 +236,7 @@ public final class BuiltinRenderers {
                 double size = ctx.tokens().typography().bodySize() * 0.92;
                 DocumentColor accent = ctx.tokens().colors().accent();
                 DocumentColor box = checked ? accent : ctx.styles().list().markerColor();
-                rich.checkbox(size, checked, box, accent);
+                rich.checkbox(size, checked, ShapeOutline.CheckmarkStyle.HEAVY, box, accent);
                 rich.plain("  ");
             } else {
                 rich.style(marker + "  ", markerStyle);
@@ -326,7 +329,8 @@ public final class BuiltinRenderers {
             DocumentColor accent = accentFor(node.variant(), style.accent());
             DocumentColor background = accent.withOpacity(0.12);
             host.addSection(panel -> {
-                panel.softPanel(background, style.cornerRadius(), style.padding());
+                // Round only the right corners — the left edge meets the accent bar.
+                panel.softPanel(background, DocumentCornerRadius.right(style.cornerRadius()), style.padding());
                 panel.accentLeft(accent, style.accentWidth());
                 panel.keepTogether();
                 ctx.renderBlocks(node.content(), panel);
