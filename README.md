@@ -104,10 +104,11 @@ NodeRenderer<CodeBlockNode> labeled = (node, host, ctx) -> {
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
 `inline code` / links, ordered & unordered (nested) lists, fenced code blocks,
-blockquotes, horizontal rules, images, and `:::` custom blocks (e.g. callouts).
+blockquotes, horizontal rules, images, **GFM tables** (with per-column
+alignment), and `:::` custom blocks (e.g. callouts).
 
-Planned: tables, task lists, footnotes, syntax highlighting, additional theme
-packs, and a DOCX backend (the engine already supports it).
+Planned: task lists, footnotes, syntax highlighting, additional theme packs, and
+a DOCX backend (the engine already supports it).
 
 ## License
 

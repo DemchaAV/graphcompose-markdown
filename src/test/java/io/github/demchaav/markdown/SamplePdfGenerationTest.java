@@ -59,6 +59,14 @@ class SamplePdfGenerationTest {
             > Themes decide how all of this looks — design tokens for the cosmetics,
             > node renderers for the behaviour.
 
+            ## Tables
+
+            | Feature     | Status | Since |
+            |:------------|:------:|------:|
+            | Headings    | stable | 0.1.0 |
+            | Code blocks | stable | 0.1.0 |
+            | Tables      | new    | 0.2.0 |
+
             ---
 
             :::callout warning

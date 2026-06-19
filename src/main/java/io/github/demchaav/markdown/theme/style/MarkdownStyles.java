@@ -142,6 +142,19 @@ public final class MarkdownStyles {
                 tokens.shape().panelCornerRadius());
     }
 
+    /** @return the table component style */
+    public TableStyle table() {
+        return new TableStyle(
+                tokens.colors().codeBackground(),
+                tokens.colors().heading(),
+                tokens.colors().text(),
+                tokens.colors().rule(),
+                Math.max(0.5, tokens.shape().ruleThickness()),
+                tokens.spacing().tableCellPadding(),
+                tokens.typography().bodyFamily(),
+                tokens.typography().bodySize());
+    }
+
     /**
      * Code-block panel style.
      *
@@ -204,5 +217,28 @@ public final class MarkdownStyles {
      * @param cornerRadius panel corner radius in points
      */
     public record CalloutStyle(DocumentColor accent, double accentWidth, double padding, double cornerRadius) {
+    }
+
+    /**
+     * Table style.
+     *
+     * @param headerFill  header row background fill
+     * @param headerText  header text colour (rendered bold)
+     * @param bodyText    body cell text colour
+     * @param border      cell border colour
+     * @param borderWidth cell border width in points
+     * @param cellPadding inner padding of each cell in points
+     * @param family      cell font family
+     * @param fontSize    cell font size in points
+     */
+    public record TableStyle(
+            DocumentColor headerFill,
+            DocumentColor headerText,
+            DocumentColor bodyText,
+            DocumentColor border,
+            double borderWidth,
+            double cellPadding,
+            FontFamily family,
+            double fontSize) {
     }
 }

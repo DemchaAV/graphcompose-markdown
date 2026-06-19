@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.composer;
 
 import io.github.demchaav.markdown.model.CodeBlockNode;
+import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
 import io.github.demchaav.markdown.theme.MarkdownTheme;
@@ -77,6 +78,20 @@ class MarkdownComposerTest {
                 .toPdfBytes();
 
         assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersGfmTableToPdf() throws Exception {
+        String md = """
+                | A | B | C |
+                |:--|:-:|--:|
+                | 1 | 2 | 3 |
+                | 4 | 5 | 6 |
+                """;
+        MarkdownComposer.Rendered rendered = MarkdownComposer.create(DefaultMarkdownTheme.light()).render(md);
+
+        assertThat(rendered.document().blocks()).anySatisfy(n -> assertThat(n).isInstanceOf(TableNode.class));
+        assertThat(header(rendered.toPdfBytes())).isEqualTo("%PDF-");
     }
 
     @Test

@@ -74,7 +74,8 @@ public final class DefaultMarkdownTheme {
                 10.0,  // quotePadding
                 3.0,   // quoteAccentWidth
                 12.0,  // calloutPadding
-                4.0);  // calloutAccentWidth
+                4.0,   // calloutAccentWidth
+                6.0);  // tableCellPadding
     }
 
     private static ShapeTokens shape() {
