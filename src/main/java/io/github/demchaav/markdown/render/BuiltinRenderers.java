@@ -187,15 +187,16 @@ public final class BuiltinRenderers {
                 listSection.spacing(style.itemSpacing());
                 int number = node.startNumber();
                 for (ListItemNode item : node.items()) {
-                    String marker = node.ordered() ? (number + ".") : style.bulletGlyph();
-                    renderItem(item, listSection, ctx, marker, markerStyle, indent, depth);
+                    String orderedMarker = number + ".";
+                    renderItem(item, listSection, ctx, node.ordered(), orderedMarker, markerStyle, indent, depth);
                     number++;
                 }
             });
         }
 
         private static void renderItem(ListItemNode item, SectionBuilder listSection, RenderContext ctx,
-                                       String marker, DocumentTextStyle markerStyle, double indent, int depth) {
+                                       boolean ordered, String orderedMarker, DocumentTextStyle markerStyle,
+                                       double indent, int depth) {
             double lineSpacing = ctx.tokens().typography().lineSpacing();
             DocumentInsets itemMargin = new DocumentInsets(0, 0, 0, indent);
             listSection.addSection(itemSec -> {
@@ -205,13 +206,13 @@ public final class BuiltinRenderers {
                 if (!content.isEmpty() && content.get(0) instanceof ParagraphNode first) {
                     InlineStyle base = ctx.paragraphInline();
                     RichText rich = RichText.empty();
-                    prependMarker(rich, item, marker, markerStyle, ctx);
+                    prependMarker(rich, item, ordered, orderedMarker, depth, markerStyle, ctx);
                     ctx.inline().appendInto(rich, first.content(), base);
                     itemSec.addParagraph(p -> p.rich(rich).margin(itemMargin).lineSpacing(lineSpacing));
                     start = 1;
                 } else {
                     RichText rich = RichText.empty();
-                    prependMarker(rich, item, marker, markerStyle, ctx);
+                    prependMarker(rich, item, ordered, orderedMarker, depth, markerStyle, ctx);
                     itemSec.addParagraph(p -> p.rich(rich).margin(itemMargin));
                 }
                 for (int i = start; i < content.size(); i++) {
@@ -226,11 +227,13 @@ public final class BuiltinRenderers {
         }
 
         /**
-         * Prepends the item marker: a real inline checkbox for task-list items
-         * (rounded frame + centred check), otherwise the styled bullet/number.
+         * Prepends the item marker: a real inline checkbox for task-list items, the
+         * ordinal ("1.") for ordered lists, or a depth-varying vector bullet
+         * (filled disc → ring → diamond) for unordered lists.
          */
-        private static void prependMarker(RichText rich, ListItemNode item, String marker,
-                                          DocumentTextStyle markerStyle, RenderContext ctx) {
+        private static void prependMarker(RichText rich, ListItemNode item, boolean ordered,
+                                          String orderedMarker, int depth, DocumentTextStyle markerStyle,
+                                          RenderContext ctx) {
             if (item.isTask()) {
                 boolean checked = Boolean.TRUE.equals(item.checked());
                 double size = ctx.tokens().typography().bodySize() * 0.92;
@@ -238,8 +241,28 @@ public final class BuiltinRenderers {
                 DocumentColor box = checked ? accent : ctx.styles().list().markerColor();
                 rich.checkbox(size, checked, ShapeOutline.CheckmarkStyle.HEAVY, box, accent);
                 rich.plain("  ");
+            } else if (ordered) {
+                rich.style(orderedMarker + "  ", markerStyle);
             } else {
-                rich.style(marker + "  ", markerStyle);
+                appendBullet(rich, depth, ctx);
+                rich.plain("  ");
+            }
+        }
+
+        /** Appends a small vector bullet whose shape cycles with nesting depth. */
+        private static void appendBullet(RichText rich, int depth, RenderContext ctx) {
+            DocumentColor color = ctx.styles().list().markerColor();
+            double base = ctx.tokens().typography().bodySize();
+            int kind = depth % 3;
+            if (kind == 1) {
+                // hollow ring
+                rich.dot(base * 0.36, color.withOpacity(0.0), new DocumentStroke(color, 0.9));
+            } else if (kind == 2) {
+                // diamond
+                rich.diamond(base * 0.42, color);
+            } else {
+                // filled disc
+                rich.dot(base * 0.30, color);
             }
         }
     }

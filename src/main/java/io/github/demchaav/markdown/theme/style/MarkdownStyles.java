@@ -123,7 +123,6 @@ public final class MarkdownStyles {
         return new ListStyle(
                 tokens.spacing().listIndent(),
                 tokens.spacing().listItemSpacing(),
-                "•",
                 tokens.colors().muted());
     }
 
@@ -198,10 +197,9 @@ public final class MarkdownStyles {
      *
      * @param indent       indent per nesting level in points
      * @param itemSpacing  gap between items in points
-     * @param bulletGlyph  glyph used for unordered bullets
-     * @param markerColor  colour of the list marker
+     * @param markerColor  colour of the list marker (bullet / number / checkbox)
      */
-    public record ListStyle(double indent, double itemSpacing, String bulletGlyph, DocumentColor markerColor) {
+    public record ListStyle(double indent, double itemSpacing, DocumentColor markerColor) {
     }
 
     /**
