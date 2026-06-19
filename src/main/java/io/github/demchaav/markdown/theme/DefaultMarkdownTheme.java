@@ -38,7 +38,7 @@ public final class DefaultMarkdownTheme {
      * @return a new theme instance
      */
     public static MarkdownTheme light() {
-        return assemble(lightTokens());
+        return of(lightTokens());
     }
 
     /**
@@ -47,10 +47,20 @@ public final class DefaultMarkdownTheme {
      * @return a new theme instance
      */
     public static MarkdownTheme dark() {
-        return assemble(darkTokens());
+        return of(darkTokens());
     }
 
-    private static MarkdownTheme assemble(MarkdownTokens tokens) {
+    /**
+     * Assembles a theme from the given tokens using the built-in renderers.
+     *
+     * <p>This is the shared entry point theme packs use: supply a token bundle
+     * and get a theme wired with the standard {@code NodeRenderer}s. Override
+     * individual renderers afterwards with {@link MarkdownTheme#builder(MarkdownTheme)}.</p>
+     *
+     * @param tokens the design tokens
+     * @return a theme with the standard renderers and the given tokens
+     */
+    public static MarkdownTheme of(MarkdownTokens tokens) {
         MarkdownTheme.Builder builder = MarkdownTheme.builder().tokens(tokens);
         BuiltinRenderers.registerDefaults(builder.registry());
         return builder.build();

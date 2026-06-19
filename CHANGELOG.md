@@ -11,10 +11,19 @@ and the project follows [Semantic Versioning](https://semver.org/).
   parsed via `flexmark-ext-tables` and rendered by a `TableRenderer` (even
   fixed-width columns, styled header row, per-column alignment). Adds
   `MarkdownStyles.TableStyle` and a `SpacingTokens.tableCellPadding` token.
+- **Theme packs.** Ready-made themes in `io.github.demchaav.markdown.theme.packs`:
+  `GitHubTheme` (light/dark), `AcademicTheme`, `MinimalTheme`, `BusinessReportTheme`.
+  Adds `DefaultMarkdownTheme.of(MarkdownTokens)` to assemble a theme from a token
+  bundle with the standard renderers.
+- **Rendering polish.** Code/quote/callout panels are kept whole across page
+  breaks (`SectionBuilder.keepTogether()`); blockquotes gain a plate background;
+  table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read
+  as a cohesive block in dark themes.
 
 ### Tests
 - Table mapper test (alignments / header / rows) and a table render smoke test;
-  the sample document now includes a table.
+  a theme-packs test renders the same content through every pack; the sample
+  document now includes a table.
 
 ## v0.1.0 — Planned
 
