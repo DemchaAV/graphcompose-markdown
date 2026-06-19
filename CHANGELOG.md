@@ -17,7 +17,8 @@ and the project follows [Semantic Versioning](https://semver.org/).
   bundle with the standard renderers.
 - **Task lists.** GFM `- [ ]` / `- [x]` items via `flexmark-ext-gfm-tasklist`;
   `ListItemNode.checked` carries the checkbox state and the list renderer draws a
-  `[ ]` / `[x]` marker in place of the bullet.
+  real inline checkbox (`RichText.checkbox` — a rounded frame with a centred
+  check) in place of the bullet.
 - **Rendering polish.** Code/quote/callout panels are kept whole across page
   breaks (`SectionBuilder.keepTogether()`); blockquotes gain a plate background;
   table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read

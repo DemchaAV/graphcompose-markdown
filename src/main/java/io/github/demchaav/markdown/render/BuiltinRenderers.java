@@ -184,12 +184,7 @@ public final class BuiltinRenderers {
                 listSection.spacing(style.itemSpacing());
                 int number = node.startNumber();
                 for (ListItemNode item : node.items()) {
-                    String marker;
-                    if (item.isTask()) {
-                        marker = Boolean.TRUE.equals(item.checked()) ? "[x]" : "[ ]";
-                    } else {
-                        marker = node.ordered() ? (number + ".") : style.bulletGlyph();
-                    }
+                    String marker = node.ordered() ? (number + ".") : style.bulletGlyph();
                     renderItem(item, listSection, ctx, marker, markerStyle, indent, depth);
                     number++;
                 }
@@ -207,13 +202,13 @@ public final class BuiltinRenderers {
                 if (!content.isEmpty() && content.get(0) instanceof ParagraphNode first) {
                     InlineStyle base = ctx.paragraphInline();
                     RichText rich = RichText.empty();
-                    rich.style(marker + "  ", markerStyle);
+                    prependMarker(rich, item, marker, markerStyle, ctx);
                     ctx.inline().appendInto(rich, first.content(), base);
                     itemSec.addParagraph(p -> p.rich(rich).margin(itemMargin).lineSpacing(lineSpacing));
                     start = 1;
                 } else {
                     RichText rich = RichText.empty();
-                    rich.style(marker, markerStyle);
+                    prependMarker(rich, item, marker, markerStyle, ctx);
                     itemSec.addParagraph(p -> p.rich(rich).margin(itemMargin));
                 }
                 for (int i = start; i < content.size(); i++) {
@@ -225,6 +220,24 @@ public final class BuiltinRenderers {
                     }
                 }
             });
+        }
+
+        /**
+         * Prepends the item marker: a real inline checkbox for task-list items
+         * (rounded frame + centred check), otherwise the styled bullet/number.
+         */
+        private static void prependMarker(RichText rich, ListItemNode item, String marker,
+                                          DocumentTextStyle markerStyle, RenderContext ctx) {
+            if (item.isTask()) {
+                boolean checked = Boolean.TRUE.equals(item.checked());
+                double size = ctx.tokens().typography().bodySize() * 0.92;
+                DocumentColor accent = ctx.tokens().colors().accent();
+                DocumentColor box = checked ? accent : ctx.styles().list().markerColor();
+                rich.checkbox(size, checked, box, accent);
+                rich.plain("  ");
+            } else {
+                rich.style(marker + "  ", markerStyle);
+            }
         }
     }
 
