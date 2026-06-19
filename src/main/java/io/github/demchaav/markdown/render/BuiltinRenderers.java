@@ -105,6 +105,7 @@ public final class BuiltinRenderers {
             String[] lines = node.code().isEmpty() ? new String[]{" "} : node.code().split("\n", -1);
             host.addSection(panel -> {
                 panel.softPanel(style.background(), style.cornerRadius(), style.padding());
+                panel.keepTogether();
                 panel.spacing(1);
                 for (String line : lines) {
                     String content = line.isEmpty() ? " " : line;
@@ -122,8 +123,11 @@ public final class BuiltinRenderers {
             RenderContext childCtx = ctx.withTextColor(style.textColor());
             double padding = style.padding();
             host.addSection(quote -> {
+                quote.fillColor(style.background());
+                quote.cornerRadius(style.cornerRadius());
                 quote.accentLeft(style.barColor(), style.barWidth());
                 quote.padding(new DocumentInsets(padding, padding, padding, padding + style.barWidth()));
+                quote.keepTogether();
                 childCtx.renderBlocks(node.content(), quote);
             });
         }
@@ -260,10 +264,8 @@ public final class BuiltinRenderers {
                 DocumentTableStyle.Builder cellStyle = DocumentTableStyle.builder()
                         .padding(style.cellPadding())
                         .stroke(border)
-                        .textAnchor(anchor(alignment));
-                if (header) {
-                    cellStyle.fillColor(style.headerFill());
-                }
+                        .textAnchor(anchor(alignment))
+                        .fillColor(header ? style.headerFill() : style.rowFill());
                 out.add(DocumentTableCell.node(paragraph).withStyle(cellStyle.build()));
             }
             return out;
@@ -308,6 +310,7 @@ public final class BuiltinRenderers {
             host.addSection(panel -> {
                 panel.softPanel(background, style.cornerRadius(), style.padding());
                 panel.accentLeft(accent, style.accentWidth());
+                panel.keepTogether();
                 ctx.renderBlocks(node.content(), panel);
             });
         }

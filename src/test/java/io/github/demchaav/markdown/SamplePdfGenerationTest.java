@@ -95,16 +95,20 @@ class SamplePdfGenerationTest {
         assertThat(Files.size(light)).isGreaterThan(1000L);
         assertThat(Files.size(dark)).isGreaterThan(1000L);
 
-        renderFirstPagePng(light, outDir.resolve("markdown-sample-light.png"));
-        renderFirstPagePng(dark, outDir.resolve("markdown-sample-dark.png"));
+        renderPagesPng(light, outDir, "markdown-sample-light");
+        renderPagesPng(dark, outDir, "markdown-sample-dark");
     }
 
-    /** Renders page 1 of a PDF to a PNG (developer aid for eyeballing output). */
-    private static void renderFirstPagePng(Path pdf, Path png) throws Exception {
+    /** Renders every page of a PDF to a PNG (developer aid for eyeballing output). */
+    private static void renderPagesPng(Path pdf, Path outDir, String stem) throws Exception {
         try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
             PDFRenderer renderer = new PDFRenderer(doc);
-            BufferedImage image = renderer.renderImageWithDPI(0, 110);
-            ImageIO.write(image, "PNG", png.toFile());
+            int pages = doc.getNumberOfPages();
+            for (int i = 0; i < pages; i++) {
+                BufferedImage image = renderer.renderImageWithDPI(i, 110);
+                String suffix = pages == 1 ? "" : "-p" + (i + 1);
+                ImageIO.write(image, "PNG", outDir.resolve(stem + suffix + ".png").toFile());
+            }
         }
     }
 }

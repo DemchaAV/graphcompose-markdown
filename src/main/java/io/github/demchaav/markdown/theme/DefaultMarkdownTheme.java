@@ -97,6 +97,7 @@ public final class DefaultMarkdownTheme {
                 DocumentColor.rgb(13, 110, 253),   // link
                 DocumentColor.rgb(45, 55, 72),     // code
                 DocumentColor.rgb(243, 244, 246),  // codeBackground
+                DocumentColor.rgb(255, 255, 255),  // tableRowBackground
                 DocumentColor.rgb(148, 163, 184),  // quoteBar
                 DocumentColor.rgb(82, 90, 100),    // quoteText
                 DocumentColor.rgb(222, 226, 230),  // rule
@@ -113,6 +114,7 @@ public final class DefaultMarkdownTheme {
                 DocumentColor.rgb(96, 165, 250),   // link
                 DocumentColor.rgb(226, 232, 240),  // code
                 DocumentColor.rgb(30, 41, 59),     // codeBackground
+                DocumentColor.rgb(23, 32, 50),     // tableRowBackground
                 DocumentColor.rgb(71, 85, 105),    // quoteBar
                 DocumentColor.rgb(148, 163, 184),  // quoteText
                 DocumentColor.rgb(51, 65, 85),     // rule

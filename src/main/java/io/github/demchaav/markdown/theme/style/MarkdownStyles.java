@@ -113,7 +113,9 @@ public final class MarkdownStyles {
                 tokens.colors().quoteBar(),
                 tokens.spacing().quoteAccentWidth(),
                 tokens.spacing().quotePadding(),
-                tokens.colors().quoteText());
+                tokens.colors().quoteText(),
+                tokens.colors().codeBackground(),
+                tokens.shape().panelCornerRadius());
     }
 
     /** @return the list component style */
@@ -146,6 +148,7 @@ public final class MarkdownStyles {
     public TableStyle table() {
         return new TableStyle(
                 tokens.colors().codeBackground(),
+                tokens.colors().tableRowBackground(),
                 tokens.colors().heading(),
                 tokens.colors().text(),
                 tokens.colors().rule(),
@@ -179,12 +182,15 @@ public final class MarkdownStyles {
     /**
      * Blockquote style.
      *
-     * @param barColor  left accent bar colour
-     * @param barWidth  left accent bar width in points
-     * @param padding   inner padding in points
-     * @param textColor quoted text colour
+     * @param barColor     left accent bar colour
+     * @param barWidth     left accent bar width in points
+     * @param padding      inner padding in points
+     * @param textColor    quoted text colour
+     * @param background   plate background fill
+     * @param cornerRadius plate corner radius in points
      */
-    public record QuoteStyle(DocumentColor barColor, double barWidth, double padding, DocumentColor textColor) {
+    public record QuoteStyle(DocumentColor barColor, double barWidth, double padding,
+                             DocumentColor textColor, DocumentColor background, double cornerRadius) {
     }
 
     /**
@@ -223,6 +229,7 @@ public final class MarkdownStyles {
      * Table style.
      *
      * @param headerFill  header row background fill
+     * @param rowFill     body row background fill
      * @param headerText  header text colour (rendered bold)
      * @param bodyText    body cell text colour
      * @param border      cell border colour
@@ -233,6 +240,7 @@ public final class MarkdownStyles {
      */
     public record TableStyle(
             DocumentColor headerFill,
+            DocumentColor rowFill,
             DocumentColor headerText,
             DocumentColor bodyText,
             DocumentColor border,
