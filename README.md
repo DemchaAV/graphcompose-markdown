@@ -100,6 +100,22 @@ NodeRenderer<CodeBlockNode> labeled = (node, host, ctx) -> {
 };
 ```
 
+### Ready-made theme packs
+
+Beyond `DefaultMarkdownTheme.light()` / `.dark()`, the
+`io.github.demchaav.markdown.theme.packs` package ships drop-in themes:
+
+| Pack | Look |
+|------|------|
+| `GitHubTheme.light()` / `.dark()` | GitHub Primer palette, sans + monospace |
+| `AcademicTheme.light()` | serif body, generous leading, wide margins |
+| `MinimalTheme.light()` | monochrome, hairline rules, lots of whitespace |
+| `BusinessReportTheme.light()` | serif headings over a sans body, navy + teal |
+
+```java
+MarkdownComposer.create(GitHubTheme.dark()).render(md).writePdf(path);
+```
+
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
