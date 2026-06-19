@@ -2,8 +2,10 @@ package io.github.demchaav.markdown.theme;
 
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
 import io.github.demchaav.markdown.extension.ImageResolver;
+import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.render.NodeRenderer;
+import io.github.demchaav.markdown.render.RendererPack;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
 
 import java.util.Objects;
@@ -113,6 +115,31 @@ public final class MarkdownTheme {
          */
         public <N extends MarkdownNode> Builder renderer(Class<N> type, NodeRenderer<N> renderer) {
             registry.register(type, renderer);
+            return this;
+        }
+
+        /**
+         * Applies a renderer pack — registers all of its renderers, overriding earlier
+         * bindings for the same node types. Compose packs from several sources.
+         *
+         * @param pack the renderer pack
+         * @return this builder
+         */
+        public Builder pack(RendererPack pack) {
+            Objects.requireNonNull(pack, "pack").registerInto(registry);
+            return this;
+        }
+
+        /**
+         * Binds a renderer to a specific {@code :::} custom-block type (e.g. {@code "chart"}),
+         * so a project can render its own block types while reusing every other renderer.
+         *
+         * @param type     the custom-block type (case-insensitive)
+         * @param renderer the renderer for that type
+         * @return this builder
+         */
+        public Builder customBlock(String type, NodeRenderer<CustomBlockNode> renderer) {
+            registry.registerCustomBlock(type, renderer);
             return this;
         }
 

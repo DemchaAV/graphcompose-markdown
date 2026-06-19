@@ -1,11 +1,14 @@
 package io.github.demchaav.markdown.theme;
 
 import com.demcha.compose.document.dsl.SectionBuilder;
+import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
+import io.github.demchaav.markdown.render.BuiltinRenderers;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.render.RenderContext;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -19,10 +22,12 @@ import java.util.Objects;
 public final class RendererRegistry {
 
     private final Map<Class<? extends MarkdownNode>, NodeRenderer<? extends MarkdownNode>> renderers;
+    private final Map<String, NodeRenderer<CustomBlockNode>> customBlockRenderers;
 
     /** Creates an empty registry. */
     public RendererRegistry() {
         this.renderers = new HashMap<>();
+        this.customBlockRenderers = new HashMap<>();
     }
 
     /**
@@ -31,7 +36,9 @@ public final class RendererRegistry {
      * @param source the registry to copy bindings from
      */
     public RendererRegistry(RendererRegistry source) {
-        this.renderers = new HashMap<>(Objects.requireNonNull(source, "source").renderers);
+        Objects.requireNonNull(source, "source");
+        this.renderers = new HashMap<>(source.renderers);
+        this.customBlockRenderers = new HashMap<>(source.customBlockRenderers);
     }
 
     /**
@@ -45,6 +52,38 @@ public final class RendererRegistry {
     public <N extends MarkdownNode> RendererRegistry register(Class<N> type, NodeRenderer<N> renderer) {
         renderers.put(Objects.requireNonNull(type, "type"), Objects.requireNonNull(renderer, "renderer"));
         return this;
+    }
+
+    /**
+     * Binds a renderer to a specific {@code :::} custom-block type (e.g. {@code "chart"}),
+     * replacing any existing binding. The default custom-block dispatcher routes blocks of
+     * that type to this renderer; unbound types fall back to the callout rendering. This is
+     * the seam for project-specific block types.
+     *
+     * @param type     the custom-block type (matched case-insensitively)
+     * @param renderer the renderer for that type
+     * @return this registry, for chaining
+     */
+    public RendererRegistry registerCustomBlock(String type, NodeRenderer<CustomBlockNode> renderer) {
+        customBlockRenderers.put(
+                Objects.requireNonNull(type, "type").toLowerCase(Locale.ROOT),
+                Objects.requireNonNull(renderer, "renderer"));
+        // Ensure CustomBlockNode actually routes through the type dispatcher, so a custom
+        // block renderer is reached even on a theme assembled without StandardPack.
+        // putIfAbsent: keep an existing dispatcher (from StandardPack) or an explicit
+        // CustomBlockNode override the caller registered themselves.
+        renderers.putIfAbsent(CustomBlockNode.class, new BuiltinRenderers.CustomBlockDispatchRenderer());
+        return this;
+    }
+
+    /**
+     * Returns the renderer bound to a custom-block type, or {@code null} if none is bound.
+     *
+     * @param type the custom-block type
+     * @return the renderer, or {@code null}
+     */
+    public NodeRenderer<CustomBlockNode> customBlockRenderer(String type) {
+        return type == null ? null : customBlockRenderers.get(type.toLowerCase(Locale.ROOT));
     }
 
     /**

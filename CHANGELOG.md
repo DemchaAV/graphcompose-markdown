@@ -26,6 +26,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   custom block sits between a reference and its definition.
 - **List bullets** are now vector shapes that vary by nesting depth (disc → ring →
   diamond) instead of a flat `•`.
+- **Composable renderer packs.** `RendererPack` (with `StandardPack`) bundles node
+  renderers so a project can ship and compose its own; `MarkdownTheme.builder` gains
+  `.pack(...)`. `:::` custom blocks now dispatch by `type` —
+  `.customBlock("chart", renderer)` / `RendererRegistry.registerCustomBlock(...)` —
+  with the callout style as the fallback for unregistered types. Renderers remain
+  keyed on the semantic model (parser-decoupled), not Flexmark nodes.
 - **Rendering polish.** Code/quote/callout panels are kept whole across page
   breaks (`SectionBuilder.keepTogether()`); blockquotes gain a plate background;
   table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read

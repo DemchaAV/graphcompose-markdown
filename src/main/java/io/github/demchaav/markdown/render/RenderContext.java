@@ -4,6 +4,7 @@ import com.demcha.compose.document.dsl.RichText;
 import com.demcha.compose.document.dsl.SectionBuilder;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.extension.ImageResolver;
+import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.theme.MarkdownTheme;
@@ -115,6 +116,17 @@ public final class RenderContext {
      */
     public void renderBlock(MarkdownNode node, SectionBuilder host) {
         theme.registry().render(node, host, this);
+    }
+
+    /**
+     * Returns the renderer bound to a {@code :::} custom-block type, or {@code null}.
+     * Used by the default custom-block dispatcher to route by type.
+     *
+     * @param type the custom-block type
+     * @return the type-specific renderer, or {@code null} for the default
+     */
+    public NodeRenderer<CustomBlockNode> customBlockRenderer(String type) {
+        return theme.registry().customBlockRenderer(type);
     }
 
     /**
