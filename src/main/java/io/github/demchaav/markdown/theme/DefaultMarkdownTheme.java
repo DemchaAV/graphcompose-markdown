@@ -3,7 +3,7 @@ package io.github.demchaav.markdown.theme;
 import com.demcha.compose.document.api.DocumentPageSize;
 import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentInsets;
-import io.github.demchaav.markdown.render.BuiltinRenderers;
+import io.github.demchaav.markdown.render.StandardPack;
 import io.github.demchaav.markdown.theme.tokens.ColorTokens;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
@@ -61,9 +61,7 @@ public final class DefaultMarkdownTheme {
      * @return a theme with the standard renderers and the given tokens
      */
     public static MarkdownTheme of(MarkdownTokens tokens) {
-        MarkdownTheme.Builder builder = MarkdownTheme.builder().tokens(tokens);
-        BuiltinRenderers.registerDefaults(builder.registry());
-        return builder.build();
+        return MarkdownTheme.builder().tokens(tokens).pack(new StandardPack()).build();
     }
 
     private static TypographyTokens typography() {

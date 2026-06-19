@@ -67,7 +67,7 @@ public final class BuiltinRenderers {
         registry.register(ThematicBreakNode.class, new ThematicBreakRenderer());
         registry.register(ImageNode.class, new ImageRenderer());
         registry.register(TableNode.class, new TableRenderer());
-        registry.register(CustomBlockNode.class, new CalloutRenderer());
+        registry.register(CustomBlockNode.class, new CustomBlockDispatchRenderer());
         registry.register(FootnotesNode.class, new FootnotesRenderer());
     }
 
@@ -344,6 +344,21 @@ public final class BuiltinRenderers {
                 default:
                     return DocumentTableTextAnchor.CENTER_LEFT;
             }
+        }
+    }
+
+    /**
+     * Default {@code :::} custom-block renderer: routes a block to the renderer registered
+     * for its {@code type} (via {@code registry.registerCustomBlock(...)}), falling back to
+     * the callout style for unbound types. This is the per-type extension seam.
+     */
+    public static final class CustomBlockDispatchRenderer implements NodeRenderer<CustomBlockNode> {
+        private final NodeRenderer<CustomBlockNode> fallback = new CalloutRenderer();
+
+        @Override
+        public void render(CustomBlockNode node, SectionBuilder host, RenderContext ctx) {
+            NodeRenderer<CustomBlockNode> renderer = ctx.customBlockRenderer(node.type());
+            (renderer != null ? renderer : fallback).render(node, host, ctx);
         }
     }
 

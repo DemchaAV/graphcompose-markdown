@@ -116,6 +116,25 @@ Beyond `DefaultMarkdownTheme.light()` / `.dark()`, the
 MarkdownComposer.create(GitHubTheme.dark()).render(md).writePdf(path);
 ```
 
+### Renderer packs & custom blocks
+
+Renderers compose in **packs**. `StandardPack` ships every built-in renderer; add
+your own pack, override an individual node renderer, or register a renderer for
+your own `:::` block type — reusing everything else:
+
+```java
+MarkdownTheme theme = MarkdownTheme.builder(DefaultMarkdownTheme.light())
+        .pack(new MyAlertsPack())                  // bundle renderers from another source
+        .renderer(CodeBlockNode.class, myCode)      // override one node renderer
+        .customBlock("chart", new ChartRenderer())  // render your own ::: block type
+        .build();
+```
+
+A `:::chart … :::` block routes to the renderer registered for `"chart"`; any
+unrecognised `:::` type falls back to the callout style. Renderers stay decoupled
+from the parser — they operate on the semantic model (`NodeRenderer<HeadingNode>`,
+etc.), never on Flexmark types.
+
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
