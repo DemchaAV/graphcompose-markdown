@@ -1,7 +1,9 @@
 package io.github.demchaav.markdown;
 
 import io.github.demchaav.markdown.composer.MarkdownComposer;
+import io.github.demchaav.markdown.extension.BundledFonts;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
+import io.github.demchaav.markdown.theme.MarkdownTheme;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -96,17 +98,25 @@ class SamplePdfGenerationTest {
 
         Path light = outDir.resolve("markdown-sample-light.pdf");
         Path dark = outDir.resolve("markdown-sample-dark.pdf");
+        Path jetbrains = outDir.resolve("markdown-sample-jetbrains.pdf");
 
         MarkdownComposer.create(DefaultMarkdownTheme.light()).render(SAMPLE).writePdf(light);
         MarkdownComposer.create(DefaultMarkdownTheme.dark()).render(SAMPLE).writePdf(dark);
 
+        // Opt-in rich fonts — same light theme but code rendered in JetBrains Mono.
+        MarkdownTheme jbTheme = BundledFonts.jetBrainsMonoCode(DefaultMarkdownTheme.light());
+        MarkdownComposer.create(jbTheme).render(SAMPLE).writePdf(jetbrains);
+
         assertThat(light).exists();
         assertThat(dark).exists();
+        assertThat(jetbrains).exists();
         assertThat(Files.size(light)).isGreaterThan(1000L);
         assertThat(Files.size(dark)).isGreaterThan(1000L);
+        assertThat(Files.size(jetbrains)).isGreaterThan(1000L);
 
         renderPagesPng(light, outDir, "markdown-sample-light");
         renderPagesPng(dark, outDir, "markdown-sample-dark");
+        renderPagesPng(jetbrains, outDir, "markdown-sample-jetbrains");
     }
 
     /** Renders every page of a PDF to a PNG (developer aid for eyeballing output). */

@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.composer;
 
 import com.vladsch.flexmark.parser.Parser;
+import io.github.demchaav.markdown.extension.BundledFonts;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
@@ -108,6 +109,18 @@ class MarkdownComposerTest {
 
         byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.dark()).render(md).toPdfBytes();
 
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersCodeWithBundledJetBrainsMonoFont() throws Exception {
+        // Opt-in rich fonts: registers JetBrains Mono (from graph-compose-fonts, on the
+        // test classpath) and switches the code font to it.
+        MarkdownTheme theme = BundledFonts.jetBrainsMonoCode(DefaultMarkdownTheme.light());
+
+        byte[] pdf = MarkdownComposer.create(theme).render("```java\nint x = 42;\n```").toPdfBytes();
+
+        assertThat(theme.fontFamilies()).isNotEmpty();
         assertThat(header(pdf)).isEqualTo("%PDF-");
     }
 

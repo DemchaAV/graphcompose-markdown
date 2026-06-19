@@ -151,6 +151,29 @@ unrecognised `:::` type falls back to the callout style. Renderers stay decouple
 from the parser — they operate on the semantic model (`NodeRenderer<HeadingNode>`,
 etc.), never on Flexmark types.
 
+### Rich fonts (optional)
+
+The default themes use the PDF **base-14** fonts (Helvetica / Times / Courier), so
+the core needs no font artifact. To render code in **JetBrains Mono** instead of
+Courier, add the bundled-fonts artifact and upgrade any theme with `BundledFonts`:
+
+```xml
+<dependency>
+    <groupId>io.github.demchaav</groupId>
+    <artifactId>graph-compose-fonts</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```java
+MarkdownTheme theme = BundledFonts.jetBrainsMonoCode(DefaultMarkdownTheme.light());
+MarkdownComposer.create(theme).render(md).writePdf(out);
+```
+
+`BundledFonts` registers the font family into the render session and switches the
+code token family — body and headings are untouched. The dependency is declared
+`optional`, so it only ships if you ask for it.
+
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /

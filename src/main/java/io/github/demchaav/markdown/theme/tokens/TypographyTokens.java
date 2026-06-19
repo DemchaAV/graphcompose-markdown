@@ -43,4 +43,15 @@ public record TypographyTokens(
     public double headingSize(int level) {
         return headingSizes.get(Math.max(1, Math.min(6, level)) - 1);
     }
+
+    /**
+     * Returns a copy with a different code font family.
+     *
+     * @param newCodeFamily the replacement code family
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withCodeFamily(FontFamily newCodeFamily) {
+        return new TypographyTokens(bodyFamily, headingFamily, newCodeFamily, bodySize, codeSize, lineSpacing,
+                headingSizes);
+    }
 }

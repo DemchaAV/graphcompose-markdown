@@ -32,6 +32,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   no extra dependency. Adds the `SyntaxColors` token group (light + dark palettes) and
   `MarkdownTheme.builder().highlighter(...)` to plug a grammar-based highlighter.
   Indentation is preserved (non-breaking spaces); unknown/`text` languages stay plain.
+- **Rich fonts (optional).** `BundledFonts.jetBrainsMonoCode(theme)` upgrades any
+  theme to render code in **JetBrains Mono** instead of base-14 Courier, registering
+  the family into the render session (`MarkdownTheme.builder().fontFamily(...)`). Adds
+  the `FontFamily.MONO_JETBRAINS` family and `TypographyTokens.withCodeFamily(...)`.
+  The `graph-compose-fonts` artifact is an **optional** dependency — the core stays
+  base-14-only and dependency-free.
 - **Render from a parsed tree.** `MarkdownComposer.render(...)` overloads accept an
   already-parsed Flexmark `Document` (bring your own parser/extensions) or a pre-built
   `MarkdownDocument` semantic model — no string round-trip or file.

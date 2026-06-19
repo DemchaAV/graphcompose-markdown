@@ -218,6 +218,7 @@ public final class MarkdownComposer {
             PageTokens page = theme.tokens().page();
             DocumentSession session = GraphCompose.document().pageSize(page.pageSize()).create();
             session.margin(page.margin());
+            theme.fontFamilies().forEach(session::registerFontFamily);
             DocumentColor surface = theme.tokens().colors().surface();
             if (surface != null) {
                 session.pageBackground(surface);
