@@ -26,6 +26,9 @@ and the project follows [Semantic Versioning](https://semver.org/).
   custom block sits between a reference and its definition.
 - **List bullets** are now vector shapes that vary by nesting depth (disc → ring →
   diamond) instead of a flat `•`.
+- **Render from a parsed tree.** `MarkdownComposer.render(...)` overloads accept an
+  already-parsed Flexmark `Document` (bring your own parser/extensions) or a pre-built
+  `MarkdownDocument` semantic model — no string round-trip or file.
 - **Composable renderer packs.** `RendererPack` (with `StandardPack`) bundles node
   renderers so a project can ship and compose its own; `MarkdownTheme.builder` gains
   `.pack(...)`. `:::` custom blocks now dispatch by `type` —

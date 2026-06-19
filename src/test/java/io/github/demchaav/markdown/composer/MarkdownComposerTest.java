@@ -1,14 +1,20 @@
 package io.github.demchaav.markdown.composer;
 
+import com.vladsch.flexmark.parser.Parser;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
+import io.github.demchaav.markdown.model.HeadingNode;
+import io.github.demchaav.markdown.model.MarkdownDocument;
+import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.TableNode;
+import io.github.demchaav.markdown.model.inline.TextRun;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
 import io.github.demchaav.markdown.theme.MarkdownTheme;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +74,30 @@ class MarkdownComposerTest {
         byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.dark())
                 .render(KITCHEN_SINK)
                 .toPdfBytes();
+
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersAPreParsedFlexmarkDocumentDirectly() throws Exception {
+        // A caller who already holds a Flexmark tree (their own parser) renders it without
+        // a string round-trip.
+        Parser flexmark = Parser.builder().build();
+        com.vladsch.flexmark.util.ast.Document tree = flexmark.parse("# Title\n\nA **paragraph**.");
+
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light()).render(tree).toPdfBytes();
+
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersAPreBuiltSemanticDocument() throws Exception {
+        // No parser at all — build the model by hand and render it.
+        MarkdownDocument document = new MarkdownDocument(List.of(
+                new HeadingNode(1, List.of(new TextRun("Built by hand"))),
+                new ParagraphNode(List.of(new TextRun("No parser involved.")))));
+
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light()).render(document).toPdfBytes();
 
         assertThat(header(pdf)).isEqualTo("%PDF-");
     }

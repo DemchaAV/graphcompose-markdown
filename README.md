@@ -63,6 +63,22 @@ composer.render(md).writePdf(Path.of("release-notes.pdf"));
 // or: byte[] pdf = composer.render(md).toPdfBytes();
 ```
 
+### Bring your own AST
+
+Already have a Flexmark tree (parsed with your own parser and extensions), or build
+the semantic model yourself? Render either directly — no string round-trip, no file:
+
+```java
+// a com.vladsch.flexmark.util.ast.Document you already parsed
+composer.render(flexmarkDocument).toPdfBytes();
+
+// or a hand-built / transformed MarkdownDocument semantic model
+composer.render(markdownDocument).writePdf(out);
+```
+
+(The `:::` custom-block extraction is a text-level pre-pass, so it only runs for the
+`render(String)` entry point.)
+
 ## Theming
 
 A `MarkdownTheme` is built from three layers, so you change exactly as much as

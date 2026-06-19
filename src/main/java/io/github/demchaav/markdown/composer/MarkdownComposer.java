@@ -87,6 +87,34 @@ public final class MarkdownComposer {
         return new Rendered(document, theme);
     }
 
+    /**
+     * Renders an already-parsed Flexmark document — for callers who already hold a
+     * {@code com.vladsch.flexmark.util.ast.Document} (e.g. parsed with their own Flexmark
+     * parser and extensions) and want a PDF without a string round-trip.
+     *
+     * <p>The tree is mapped and rendered as-is. {@code :::} custom blocks are a text-level
+     * pre-pass, so they are <em>not</em> extracted here — use {@link #render(String)} if you
+     * rely on them.</p>
+     *
+     * @param flexmarkDocument the Flexmark AST root
+     * @return a {@link Rendered} ready to write to PDF
+     */
+    public Rendered render(com.vladsch.flexmark.util.ast.Document flexmarkDocument) {
+        Objects.requireNonNull(flexmarkDocument, "flexmarkDocument");
+        return new Rendered(mapper.map(flexmarkDocument), theme);
+    }
+
+    /**
+     * Renders a pre-built semantic document — the stable hand-off point if you construct or
+     * transform the {@link MarkdownDocument} model yourself.
+     *
+     * @param document the semantic document
+     * @return a {@link Rendered} ready to write to PDF
+     */
+    public Rendered render(MarkdownDocument document) {
+        return new Rendered(Objects.requireNonNull(document, "document"), theme);
+    }
+
     /** Builder for {@link MarkdownComposer}. */
     public static final class Builder {
 
