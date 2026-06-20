@@ -106,6 +106,9 @@ Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough
 **GFM tables** (with per-column alignment), **footnotes**, and `:::` custom blocks
 (e.g. callouts).
 
+Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
+mirrors the document's heading tree.
+
 Content the library does not model (raw HTML blocks, inline HTML) is **surfaced as raw
 text rather than silently dropped**; `MarkdownComposer.builder().strictMode(true)`
 rejects such a document instead, for pipelines that must fail loudly.

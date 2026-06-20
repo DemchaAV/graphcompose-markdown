@@ -4,6 +4,7 @@ import com.demcha.compose.document.dsl.ParagraphBuilder;
 import com.demcha.compose.document.dsl.RichText;
 import com.demcha.compose.document.dsl.SectionBuilder;
 import com.demcha.compose.document.image.DocumentImageFitMode;
+import com.demcha.compose.document.node.DocumentBookmarkOptions;
 import com.demcha.compose.document.node.TextAlign;
 import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentCornerRadius;
@@ -74,14 +75,24 @@ public final class BuiltinRenderers {
         registry.register(UnsupportedBlockNode.class, new UnsupportedBlockRenderer());
     }
 
-    /** Renders a heading as a styled paragraph with space above it. */
+    /**
+     * Renders a heading as a styled paragraph with space above it, and attaches a PDF
+     * bookmark (outline entry) at its level so the rendered document gets a navigable
+     * heading tree in the viewer's outline pane.
+     */
     public static final class HeadingRenderer implements NodeRenderer<HeadingNode> {
         @Override
         public void render(HeadingNode node, SectionBuilder host, RenderContext ctx) {
             InlineStyle base = ctx.headingInline(node.level());
             RichText rich = ctx.toRich(node.content(), base);
             double above = ctx.styles().headingSpaceAbove(node.level());
-            host.addParagraph(p -> p.rich(rich).margin(new DocumentInsets(above, 0, 0, 0)));
+            String title = ctx.inline().plainText(node.content()).strip();
+            host.addParagraph(p -> {
+                p.rich(rich).margin(new DocumentInsets(above, 0, 0, 0));
+                if (!title.isEmpty()) {
+                    p.bookmark(new DocumentBookmarkOptions(title, node.level()));
+                }
+            });
         }
     }
 

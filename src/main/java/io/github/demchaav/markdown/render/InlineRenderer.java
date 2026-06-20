@@ -58,6 +58,45 @@ public final class InlineRenderer {
         appendAll(rich, nodes, base, new Decor(base.baseBold(), base.baseItalic(), false, null));
     }
 
+    /**
+     * Flattens inline nodes to their plain text, dropping all styling — e.g. for a PDF
+     * bookmark title or a table-of-contents entry.
+     *
+     * @param nodes the inline nodes
+     * @return the concatenated plain text
+     */
+    public String plainText(List<InlineNode> nodes) {
+        StringBuilder out = new StringBuilder();
+        appendPlain(out, nodes);
+        return out.toString();
+    }
+
+    private void appendPlain(StringBuilder out, List<InlineNode> nodes) {
+        for (InlineNode node : nodes) {
+            if (node instanceof TextRun text) {
+                out.append(text.text());
+            } else if (node instanceof CodeRun code) {
+                out.append(code.text());
+            } else if (node instanceof StrongRun strong) {
+                appendPlain(out, strong.children());
+            } else if (node instanceof EmphasisRun emphasis) {
+                appendPlain(out, emphasis.children());
+            } else if (node instanceof StrikethroughRun strike) {
+                appendPlain(out, strike.children());
+            } else if (node instanceof LinkRun link) {
+                appendPlain(out, link.children().isEmpty()
+                        ? List.of(new TextRun(link.url())) : link.children());
+            } else if (node instanceof ImageRun image) {
+                out.append(image.alt());
+            } else if (node instanceof UnsupportedInlineRun unsupported) {
+                out.append(unsupported.raw());
+            } else if (node instanceof LineBreakRun) {
+                out.append(' ');
+            }
+            // FootnoteRefRun is intentionally omitted — a [N] marker is noise in a title.
+        }
+    }
+
     private void appendAll(RichText rich, List<InlineNode> nodes, InlineStyle base, Decor decor) {
         for (InlineNode node : nodes) {
             append(rich, node, base, decor);
