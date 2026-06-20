@@ -31,6 +31,9 @@ by version.
   `SyntaxHighlighter` SPI.
 
 ### Public API — notable behaviour
+- **PDF outline from headings.** Headings (h1–h6) become a nested PDF bookmark tree, so
+  the viewer's outline/navigation pane mirrors the document structure (titles are the
+  plain heading text; nesting follows heading level).
 - **Composable renderer packs.** `.pack(...)` bundles renderers; `:::` blocks dispatch
   by `type` (`.customBlock("chart", renderer)`), with the callout style as the fallback.
   Renderers stay keyed on the semantic model (parser-decoupled), not Flexmark nodes.
