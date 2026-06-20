@@ -36,7 +36,10 @@ public final class MarkdownTheme {
 
     private MarkdownTheme(Builder builder) {
         this.tokens = Objects.requireNonNull(builder.tokens, "tokens");
-        this.registry = builder.registry;
+        // Freeze a snapshot of the builder's renderers, so a built theme is immutable
+        // (and the builder stays reusable). Deriving a theme copies into a fresh
+        // mutable registry, so overriding renderers still works.
+        this.registry = new RendererRegistry(builder.registry).freeze();
         this.imageResolver = builder.imageResolver;
         this.highlighter = builder.highlighter;
         this.fontFamilies = List.copyOf(builder.fontFamilies);

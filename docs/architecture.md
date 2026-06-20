@@ -91,6 +91,15 @@ composer.render(md).writePdf(Path.of("out.pdf"));
 composer.render(md).writePdf(outputStream);
 ```
 
+## Unsupported content & strict mode
+
+A document engine must not lose content silently. When the mapper meets a block or
+inline element it does not model (a raw HTML block, unmodelled inline HTML, …) it does
+**not** drop it — it preserves the original source in an `UnsupportedBlockNode` /
+`UnsupportedInlineRun`, which a renderer surfaces as raw text. For pipelines that would
+rather fail than emit unfaithful output, `MarkdownComposer.builder().strictMode(true)`
+rejects such a document with `UnsupportedMarkdownException` instead.
+
 ## Why decouple the parser?
 
 A plain Markdown→PDF converter bakes the parser, the styling and the layout into one

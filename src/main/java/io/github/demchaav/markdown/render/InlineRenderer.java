@@ -16,6 +16,7 @@ import io.github.demchaav.markdown.model.inline.LinkRun;
 import io.github.demchaav.markdown.model.inline.StrikethroughRun;
 import io.github.demchaav.markdown.model.inline.StrongRun;
 import io.github.demchaav.markdown.model.inline.TextRun;
+import io.github.demchaav.markdown.model.inline.UnsupportedInlineRun;
 import io.github.demchaav.markdown.theme.style.InlineStyle;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 
@@ -91,6 +92,9 @@ public final class InlineRenderer {
             } else {
                 rich.space();
             }
+        } else if (node instanceof UnsupportedInlineRun unsupported) {
+            // Surface unmodelled inline (e.g. raw HTML) literally, rather than dropping it.
+            emit(rich, unsupported.raw(), base, decor, false);
         }
     }
 
