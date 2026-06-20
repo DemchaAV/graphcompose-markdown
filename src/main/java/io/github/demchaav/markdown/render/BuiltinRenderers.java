@@ -16,6 +16,7 @@ import com.demcha.compose.document.table.DocumentTableCell;
 import com.demcha.compose.document.table.DocumentTableColumn;
 import com.demcha.compose.document.table.DocumentTableStyle;
 import com.demcha.compose.document.table.DocumentTableTextAnchor;
+import io.github.demchaav.markdown.extension.CodeToken;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.ColumnAlignment;
 import io.github.demchaav.markdown.model.CustomBlockNode;
@@ -96,27 +97,71 @@ public final class BuiltinRenderers {
         }
     }
 
-    /** Renders a fenced/indented code block as a rounded, padded panel, one paragraph per line. */
+    /**
+     * Renders a fenced/indented code block as a rounded, padded panel — one paragraph per
+     * line, with syntax highlighting (the theme's {@code SyntaxHighlighter}) painting each
+     * token. Whitespace is kept exactly: spaces become non-breaking so indentation survives
+     * and long lines do not reflow mid-token.
+     */
     public static final class CodeBlockRenderer implements NodeRenderer<CodeBlockNode> {
         @Override
         public void render(CodeBlockNode node, SectionBuilder host, RenderContext ctx) {
             MarkdownStyles.CodeBlockStyle style = ctx.styles().codeBlock();
-            DocumentTextStyle codeStyle = DocumentTextStyle.builder()
-                    .fontName(style.family().resolve(false, false))
-                    .size(style.size())
-                    .color(style.textColor())
-                    .decoration(DocumentTextDecoration.DEFAULT)
-                    .build();
-            String[] lines = node.code().isEmpty() ? new String[]{" "} : node.code().split("\n", -1);
+            List<CodeToken> tokens = ctx.highlighter().highlight(node.code(), node.language());
+            List<RichText> lines = toColouredLines(tokens, style, ctx);
+            DocumentTextStyle plainStyle = codeTokenStyle(style, style.textColor());
             host.addSection(panel -> {
                 panel.softPanel(style.background(), style.cornerRadius(), style.padding());
                 panel.keepTogether();
                 panel.spacing(1);
-                for (String line : lines) {
-                    String content = line.isEmpty() ? " " : line;
-                    panel.addParagraph(p -> p.text(content).textStyle(codeStyle).lineSpacing(style.lineSpacing()));
+                for (RichText line : lines) {
+                    if (line == null) {
+                        panel.addParagraph(p -> p.text(" ").textStyle(plainStyle).lineSpacing(style.lineSpacing()));
+                    } else {
+                        panel.addParagraph(p -> p.rich(line).lineSpacing(style.lineSpacing()));
+                    }
                 }
             });
+        }
+
+        /** Splits the token stream into per-line rich text; a {@code null} entry is a blank line. */
+        private static List<RichText> toColouredLines(List<CodeToken> tokens,
+                                                      MarkdownStyles.CodeBlockStyle style, RenderContext ctx) {
+            List<RichText> lines = new ArrayList<>();
+            RichText line = RichText.empty();
+            boolean hasContent = false;
+            for (CodeToken token : tokens) {
+                DocumentTextStyle tokenStyle = codeTokenStyle(style, ctx.styles().syntaxColor(token.type()));
+                String[] parts = token.text().split("\n", -1);
+                for (int i = 0; i < parts.length; i++) {
+                    if (i > 0) {
+                        lines.add(hasContent ? line : null);
+                        line = RichText.empty();
+                        hasContent = false;
+                    }
+                    String piece = preserveWhitespace(parts[i]);
+                    if (!piece.isEmpty()) {
+                        line.style(piece, tokenStyle);
+                        hasContent = true;
+                    }
+                }
+            }
+            lines.add(hasContent ? line : null);
+            return lines;
+        }
+
+        private static DocumentTextStyle codeTokenStyle(MarkdownStyles.CodeBlockStyle style, DocumentColor color) {
+            return DocumentTextStyle.builder()
+                    .fontName(style.family().resolve(false, false))
+                    .size(style.size())
+                    .color(color)
+                    .decoration(DocumentTextDecoration.DEFAULT)
+                    .build();
+        }
+
+        /** Non-breaking spaces keep indentation and prevent mid-line reflow in the monospace panel. */
+        private static String preserveWhitespace(String text) {
+            return text.replace("\t", "    ").replace(" ", " ");
         }
     }
 

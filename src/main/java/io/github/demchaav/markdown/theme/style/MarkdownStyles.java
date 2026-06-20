@@ -1,8 +1,10 @@
 package io.github.demchaav.markdown.theme.style;
 
 import com.demcha.compose.document.style.DocumentColor;
+import io.github.demchaav.markdown.extension.CodeTokenType;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
+import io.github.demchaav.markdown.theme.tokens.SyntaxColors;
 
 import java.util.Objects;
 
@@ -93,6 +95,32 @@ public final class MarkdownStyles {
      */
     public double headingSpaceBelow(int level) {
         return tokens.spacing().headingSpaceBelow();
+    }
+
+    /**
+     * Returns the colour for a code syntax token kind; plain code uses the code text colour.
+     *
+     * @param type the token kind
+     * @return the colour to paint the token in
+     */
+    public DocumentColor syntaxColor(CodeTokenType type) {
+        SyntaxColors colors = tokens.syntax();
+        switch (type) {
+            case KEYWORD:
+                return colors.keyword();
+            case STRING:
+                return colors.string();
+            case COMMENT:
+                return colors.comment();
+            case NUMBER:
+                return colors.number();
+            case ANNOTATION:
+                return colors.annotation();
+            case FUNCTION:
+                return colors.function();
+            default:
+                return tokens.colors().code();
+        }
     }
 
     /** @return the code-block component style */

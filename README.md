@@ -151,14 +151,42 @@ unrecognised `:::` type falls back to the callout style. Renderers stay decouple
 from the parser — they operate on the semantic model (`NodeRenderer<HeadingNode>`,
 etc.), never on Flexmark types.
 
+### Rich fonts (optional)
+
+The default themes use the PDF **base-14** fonts (Helvetica / Times / Courier), so
+the core needs no font artifact. To render code in **JetBrains Mono** instead of
+Courier, add the bundled-fonts artifact and upgrade any theme with `BundledFonts`:
+
+```xml
+<dependency>
+    <groupId>io.github.demchaav</groupId>
+    <artifactId>graph-compose-fonts</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```java
+MarkdownTheme theme = BundledFonts.jetBrainsMonoCode(DefaultMarkdownTheme.light());
+MarkdownComposer.create(theme).render(md).writePdf(out);
+```
+
+`BundledFonts` registers the font family into the render session and switches the
+code token family — body and headings are untouched. The dependency is declared
+`optional`, so it only ships if you ask for it.
+
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
-`inline code` / links, ordered & unordered (nested) lists, **task lists**, fenced
-code blocks, blockquotes, horizontal rules, images, **GFM tables** (with
-per-column alignment), **footnotes**, and `:::` custom blocks (e.g. callouts).
+`inline code` / links, ordered & unordered (nested) lists, **task lists**,
+**syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
+**GFM tables** (with per-column alignment), **footnotes**, and `:::` custom blocks
+(e.g. callouts).
 
-Planned: syntax highlighting and a DOCX backend (the engine already supports it).
+Code highlighting uses a pluggable `SyntaxHighlighter` SPI — the built-in
+`RegexSyntaxHighlighter` covers common languages with no extra dependency; plug a
+grammar-based one via `MarkdownTheme.builder().highlighter(...)`.
+
+Planned: visual / snapshot tests and wider language coverage for highlighting.
 
 ## License
 

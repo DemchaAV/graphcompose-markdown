@@ -26,6 +26,18 @@ and the project follows [Semantic Versioning](https://semver.org/).
   custom block sits between a reference and its definition.
 - **List bullets** are now vector shapes that vary by nesting depth (disc → ring →
   diamond) instead of a flat `•`.
+- **Syntax highlighting.** Fenced code blocks are highlighted via a pluggable
+  `SyntaxHighlighter` SPI; the built-in `RegexSyntaxHighlighter` covers ~15 common
+  languages (keywords / strings / comments / numbers / annotations / call names) with
+  no extra dependency. Adds the `SyntaxColors` token group (light + dark palettes) and
+  `MarkdownTheme.builder().highlighter(...)` to plug a grammar-based highlighter.
+  Indentation is preserved (non-breaking spaces); unknown/`text` languages stay plain.
+- **Rich fonts (optional).** `BundledFonts.jetBrainsMonoCode(theme)` upgrades any
+  theme to render code in **JetBrains Mono** instead of base-14 Courier, registering
+  the family into the render session (`MarkdownTheme.builder().fontFamily(...)`). Adds
+  the `FontFamily.MONO_JETBRAINS` family and `TypographyTokens.withCodeFamily(...)`.
+  The `graph-compose-fonts` artifact is an **optional** dependency — the core stays
+  base-14-only and dependency-free.
 - **Render from a parsed tree.** `MarkdownComposer.render(...)` overloads accept an
   already-parsed Flexmark `Document` (bring your own parser/extensions) or a pre-built
   `MarkdownDocument` semantic model — no string round-trip or file.
@@ -41,9 +53,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   as a cohesive block in dark themes.
 
 ### Tests
+- **Fixture-driven smoke tests.** Markdown fixtures under
+  `src/test/resources/markdown/` (`basic`, `lists`, `table`, `code`, `quote`,
+  `mixed-inline`, and a `master` page that exercises the whole parser). Each is
+  asserted to parse, render to a non-empty multi-page PDF, and carry its expected
+  text into the output (extracted with PDFBox `PDFTextStripper`). The master page is
+  also rendered through every theme pack and is now the single source for the preview
+  PDFs.
 - Table mapper test (alignments / header / rows) and a table render smoke test;
-  a theme-packs test renders the same content through every pack; the sample
-  document now includes a table.
+  a theme-packs test renders the same content through every pack.
 
 ## v0.1.0 — Planned
 

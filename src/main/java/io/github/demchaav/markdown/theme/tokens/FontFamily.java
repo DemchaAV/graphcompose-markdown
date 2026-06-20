@@ -18,7 +18,15 @@ public enum FontFamily {
     /** Serif (Times family). */
     SERIF(FontName.TIMES_ROMAN, FontName.TIMES_BOLD, FontName.TIMES_ITALIC, FontName.TIMES_BOLD_ITALIC),
     /** Monospace (Courier family) — used for code. */
-    MONO(FontName.COURIER, FontName.COURIER_BOLD, FontName.COURIER_OBLIQUE, FontName.COURIER_BOLD_OBLIQUE);
+    MONO(FontName.COURIER, FontName.COURIER_BOLD, FontName.COURIER_OBLIQUE, FontName.COURIER_BOLD_OBLIQUE),
+    /**
+     * JetBrains Mono — a bundled font, not base-14. Requires the
+     * {@code graph-compose-fonts} artifact on the classpath and the family
+     * registered into the session (see {@code BundledFonts}). Bold/italic resolve
+     * to the same logical family name; the engine selects the weight from the
+     * registered source set, so this is intended for code (regular weight).
+     */
+    MONO_JETBRAINS(FontName.JETBRAINS_MONO, FontName.JETBRAINS_MONO, FontName.JETBRAINS_MONO, FontName.JETBRAINS_MONO);
 
     private final FontName regular;
     private final FontName bold;

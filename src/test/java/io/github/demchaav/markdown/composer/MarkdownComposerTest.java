@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.composer;
 
 import com.vladsch.flexmark.parser.Parser;
+import io.github.demchaav.markdown.extension.BundledFonts;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
@@ -99,6 +100,41 @@ class MarkdownComposerTest {
 
         byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light()).render(document).toPdfBytes();
 
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersAHighlightedCodeBlockToPdf() throws Exception {
+        String md = "```java\n// a note\nint x = 0xFF;\nString s = \"hi\";\n@Override void f() {}\n```";
+
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.dark()).render(md).toPdfBytes();
+
+        assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void normalisesCrlfLineEndingsInCodeBlocks() throws Exception {
+        // Windows-authored Markdown keeps interior CRLF in the fenced content; it must not
+        // survive into the code model, or each rendered line keeps a stray carriage return.
+        MarkdownComposer.Rendered rendered = MarkdownComposer.create(DefaultMarkdownTheme.light())
+                .render("```\r\nline one\r\nline two\r\n```");
+
+        CodeBlockNode code = (CodeBlockNode) rendered.document().blocks().stream()
+                .filter(CodeBlockNode.class::isInstance).findFirst().orElseThrow();
+        assertThat(code.code()).isEqualTo("line one\nline two");
+        assertThat(code.code()).doesNotContain("\r");
+        assertThat(header(rendered.toPdfBytes())).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void rendersCodeWithBundledJetBrainsMonoFont() throws Exception {
+        // Opt-in rich fonts: registers JetBrains Mono (from graph-compose-fonts, on the
+        // test classpath) and switches the code font to it.
+        MarkdownTheme theme = BundledFonts.jetBrainsMonoCode(DefaultMarkdownTheme.light());
+
+        byte[] pdf = MarkdownComposer.create(theme).render("```java\nint x = 42;\n```").toPdfBytes();
+
+        assertThat(theme.fontFamilies()).isNotEmpty();
         assertThat(header(pdf)).isEqualTo("%PDF-");
     }
 

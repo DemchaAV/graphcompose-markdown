@@ -2,12 +2,19 @@ package io.github.demchaav.markdown.theme;
 
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
 import io.github.demchaav.markdown.extension.ImageResolver;
+import io.github.demchaav.markdown.extension.RegexSyntaxHighlighter;
+import io.github.demchaav.markdown.extension.SyntaxHighlighter;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.render.RendererPack;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
 
+import com.demcha.compose.font.FontFamilyDefinition;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,11 +31,15 @@ public final class MarkdownTheme {
     private final MarkdownTokens tokens;
     private final RendererRegistry registry;
     private final ImageResolver imageResolver;
+    private final SyntaxHighlighter highlighter;
+    private final List<FontFamilyDefinition> fontFamilies;
 
     private MarkdownTheme(Builder builder) {
         this.tokens = Objects.requireNonNull(builder.tokens, "tokens");
         this.registry = builder.registry;
         this.imageResolver = builder.imageResolver;
+        this.highlighter = builder.highlighter;
+        this.fontFamilies = List.copyOf(builder.fontFamilies);
     }
 
     /** @return the design tokens */
@@ -44,6 +55,21 @@ public final class MarkdownTheme {
     /** @return the image resolver */
     public ImageResolver imageResolver() {
         return imageResolver;
+    }
+
+    /** @return the code syntax highlighter */
+    public SyntaxHighlighter highlighter() {
+        return highlighter;
+    }
+
+    /**
+     * Returns the bundled font families to register into the render session
+     * (empty for base-14-only themes).
+     *
+     * @return the font families, never {@code null}
+     */
+    public List<FontFamilyDefinition> fontFamilies() {
+        return fontFamilies;
     }
 
     /**
@@ -81,10 +107,13 @@ public final class MarkdownTheme {
         private MarkdownTokens tokens;
         private final RendererRegistry registry;
         private ImageResolver imageResolver;
+        private SyntaxHighlighter highlighter;
+        private final List<FontFamilyDefinition> fontFamilies = new ArrayList<>();
 
         private Builder() {
             this.registry = new RendererRegistry();
             this.imageResolver = new DefaultImageResolver();
+            this.highlighter = new RegexSyntaxHighlighter();
         }
 
         private Builder(MarkdownTheme base) {
@@ -92,6 +121,8 @@ public final class MarkdownTheme {
             this.tokens = base.tokens;
             this.registry = new RendererRegistry(base.registry);
             this.imageResolver = base.imageResolver;
+            this.highlighter = base.highlighter;
+            this.fontFamilies.addAll(base.fontFamilies);
         }
 
         /**
@@ -156,6 +187,40 @@ public final class MarkdownTheme {
          */
         public Builder imageResolver(ImageResolver resolver) {
             this.imageResolver = Objects.requireNonNull(resolver, "resolver");
+            return this;
+        }
+
+        /**
+         * Sets the code syntax highlighter (default {@link RegexSyntaxHighlighter}).
+         *
+         * @param newHighlighter the highlighter
+         * @return this builder
+         */
+        public Builder highlighter(SyntaxHighlighter newHighlighter) {
+            this.highlighter = Objects.requireNonNull(newHighlighter, "highlighter");
+            return this;
+        }
+
+        /**
+         * Registers a bundled font family to load into the render session (for fonts
+         * beyond the base-14 set, e.g. JetBrains Mono from {@code graph-compose-fonts}).
+         *
+         * @param definition the font family definition
+         * @return this builder
+         */
+        public Builder fontFamily(FontFamilyDefinition definition) {
+            this.fontFamilies.add(Objects.requireNonNull(definition, "definition"));
+            return this;
+        }
+
+        /**
+         * Registers several bundled font families to load into the render session.
+         *
+         * @param definitions the font family definitions
+         * @return this builder
+         */
+        public Builder fontFamilies(Collection<FontFamilyDefinition> definitions) {
+            Objects.requireNonNull(definitions, "definitions").forEach(this::fontFamily);
             return this;
         }
 
