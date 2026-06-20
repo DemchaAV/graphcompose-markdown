@@ -52,7 +52,28 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
+      - name: Preflight — are the publishing secrets configured?
+        id: preflight
+        # setup-java's gpg-private-key import fails hard ("gpg failed with exit code 2")
+        # on an empty secret, so a tag pushed before the four secrets are added would
+        # turn the build red. Gate the publish on all four being present: if any is
+        # missing, skip the remaining steps with a warning and let the job go green
+        # (release.yml still cuts the GitHub Release — it needs no GPG/Central secret).
+        env:
+          GPG_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+        run: |
+          if [ -n "$GPG_KEY" ] && [ -n "$GPG_PASSPHRASE" ] && [ -n "$CENTRAL_USERNAME" ] && [ -n "$CENTRAL_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Publishing skipped::Maven Central secrets are not configured (need MAVEN_GPG_PRIVATE_KEY, MAVEN_GPG_PASSPHRASE, CENTRAL_USERNAME, CENTRAL_TOKEN). Skipping the Central publish for this tag."
+          fi
+
       - name: Set up Temurin JDK 17 with Central credentials and GPG key
+        if: steps.preflight.outputs.ready == 'true'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -68,9 +89,11 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Verify (full suite green at tagged commit)
+        if: steps.preflight.outputs.ready == 'true'
         run: ./mvnw -B -ntp clean verify
 
       - name: Publish to Maven Central
+        if: steps.preflight.outputs.ready == 'true'
         # Activates the release profile (sources + javadoc + gpg sign +
         # central-publishing) and flips gpg.skip=false. The deploy phase blocks
         # until Sonatype's validator confirms validation.
