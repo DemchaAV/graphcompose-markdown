@@ -52,6 +52,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   table body rows are filled (new `ColorTokens.tableRowBackground`) so tables read
   as a cohesive block in dark themes.
 
+### Documentation
+- README rewritten for public use: Flexmark → PDF framing, an advantages section, an
+  architecture diagram, a theme-pack gallery and code samples with screenshots
+  (`assets/readme/`). Added deep-dive guides — `docs/architecture.md`,
+  `docs/theming.md`, `docs/custom-renderers.md` — plus `CONTRIBUTING.md`.
+
 ### Tests
 - **Fixture-driven smoke tests.** Markdown fixtures under
   `src/test/resources/markdown/` (`basic`, `lists`, `table`, `code`, `quote`,
