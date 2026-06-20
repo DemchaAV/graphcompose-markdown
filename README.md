@@ -186,7 +186,7 @@ Code highlighting uses a pluggable `SyntaxHighlighter` SPI — the built-in
 `RegexSyntaxHighlighter` covers common languages with no extra dependency; plug a
 grammar-based one via `MarkdownTheme.builder().highlighter(...)`.
 
-Planned: a DOCX backend (the engine already supports it).
+Planned: visual / snapshot tests and wider language coverage for highlighting.
 
 ## License
 

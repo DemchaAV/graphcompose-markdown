@@ -87,14 +87,15 @@ public final class FlexmarkAstMapper {
         return title.unescape();
     }
 
-    private static String stripTrailingNewline(String code) {
-        if (code.endsWith("\r\n")) {
-            return code.substring(0, code.length() - 2);
+    private static String normalizeCodeText(String code) {
+        // Normalise CRLF/CR (Windows-authored Markdown keeps interior \r in the fenced
+        // content) to LF so the renderer's per-line split never leaves a stray carriage
+        // return, then drop the single trailing newline the parser includes.
+        String normalized = code.replace("\r\n", "\n").replace('\r', '\n');
+        if (normalized.endsWith("\n")) {
+            return normalized.substring(0, normalized.length() - 1);
         }
-        if (code.endsWith("\n") || code.endsWith("\r")) {
-            return code.substring(0, code.length() - 1);
-        }
-        return code;
+        return normalized;
     }
 
     private static String decodeEntity(String entity) {
@@ -231,10 +232,10 @@ public final class FlexmarkAstMapper {
             return mapList(orderedList, true, orderedList.getStartNumber());
         }
         if (node instanceof FencedCodeBlock fenced) {
-            return new CodeBlockNode(firstToken(fenced.getInfo()), stripTrailingNewline(fenced.getContentChars().toString()));
+            return new CodeBlockNode(firstToken(fenced.getInfo()), normalizeCodeText(fenced.getContentChars().toString()));
         }
         if (node instanceof IndentedCodeBlock indented) {
-            return new CodeBlockNode("", stripTrailingNewline(indented.getContentChars().toString()));
+            return new CodeBlockNode("", normalizeCodeText(indented.getContentChars().toString()));
         }
         if (node instanceof BlockQuote quote) {
             return new QuoteNode(mapBlocks(quote));

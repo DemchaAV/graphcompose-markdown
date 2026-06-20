@@ -271,7 +271,9 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
                 "as async await break const continue crate dyn else enum extern false fn for if impl in let loop match "
                         + "mod move mut pub ref return self Self static struct super trait true type unsafe use where "
                         + "while box"),
-                SLASH_BLOCK, SLASH_LINE, "\"'", "", false, true, false));
+                // Only double-quoted strings: a single quote in Rust is usually a lifetime
+                // ('a), so treating ' as a string delimiter would swallow the rest of the line.
+                SLASH_BLOCK, SLASH_LINE, "\"", "", false, true, false));
 
         Spec cLike = new Spec(words(
                 "auto bool break case char class const constexpr continue default delete do double else enum extern "

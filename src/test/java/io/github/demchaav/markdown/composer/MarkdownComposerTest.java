@@ -113,6 +113,20 @@ class MarkdownComposerTest {
     }
 
     @Test
+    void normalisesCrlfLineEndingsInCodeBlocks() throws Exception {
+        // Windows-authored Markdown keeps interior CRLF in the fenced content; it must not
+        // survive into the code model, or each rendered line keeps a stray carriage return.
+        MarkdownComposer.Rendered rendered = MarkdownComposer.create(DefaultMarkdownTheme.light())
+                .render("```\r\nline one\r\nline two\r\n```");
+
+        CodeBlockNode code = (CodeBlockNode) rendered.document().blocks().stream()
+                .filter(CodeBlockNode.class::isInstance).findFirst().orElseThrow();
+        assertThat(code.code()).isEqualTo("line one\nline two");
+        assertThat(code.code()).doesNotContain("\r");
+        assertThat(header(rendered.toPdfBytes())).isEqualTo("%PDF-");
+    }
+
+    @Test
     void rendersCodeWithBundledJetBrainsMonoFont() throws Exception {
         // Opt-in rich fonts: registers JetBrains Mono (from graph-compose-fonts, on the
         // test classpath) and switches the code font to it.
