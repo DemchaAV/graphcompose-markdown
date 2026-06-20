@@ -127,6 +127,18 @@ class EngineRobustnessTest {
     }
 
     @Test
+    void strictModeAcceptsBracketedTextAndUndefinedReferenceLinks() {
+        MarkdownComposer strict = MarkdownComposer.builder()
+                .theme(DefaultMarkdownTheme.light()).strictMode(true).build();
+
+        // [TODO] and [text][ref] with no definition are valid CommonMark — rendered as
+        // literal text, NOT unsupported content. Strict mode must not reject them.
+        byte[] pdf = strict.render("A note [TODO] and a [broken][ref] link.").toPdfBytes();
+
+        assertThat(new String(pdf, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void strictModeAcceptsFullySupportedContent() {
         MarkdownComposer strict = MarkdownComposer.builder()
                 .theme(DefaultMarkdownTheme.light()).strictMode(true).build();
