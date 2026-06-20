@@ -27,6 +27,7 @@ import io.github.demchaav.markdown.model.ImageNode;
 import io.github.demchaav.markdown.model.ListItemNode;
 import io.github.demchaav.markdown.model.ListNode;
 import io.github.demchaav.markdown.model.MarkdownNode;
+import io.github.demchaav.markdown.model.UnsupportedBlockNode;
 import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.QuoteNode;
 import io.github.demchaav.markdown.model.TableCellNode;
@@ -70,6 +71,7 @@ public final class BuiltinRenderers {
         registry.register(TableNode.class, new TableRenderer());
         registry.register(CustomBlockNode.class, new CustomBlockDispatchRenderer());
         registry.register(FootnotesNode.class, new FootnotesRenderer());
+        registry.register(UnsupportedBlockNode.class, new UnsupportedBlockRenderer());
     }
 
     /** Renders a heading as a styled paragraph with space above it. */
@@ -162,6 +164,28 @@ public final class BuiltinRenderers {
         /** Non-breaking spaces keep indentation and prevent mid-line reflow in the monospace panel. */
         private static String preserveWhitespace(String text) {
             return text.replace("\t", "    ").replace(" ", " ");
+        }
+    }
+
+    /**
+     * Renders an unsupported block's raw source as muted monospace text. The default,
+     * lenient behaviour: surface content the mapper could not model rather than lose it.
+     */
+    public static final class UnsupportedBlockRenderer implements NodeRenderer<UnsupportedBlockNode> {
+        @Override
+        public void render(UnsupportedBlockNode node, SectionBuilder host, RenderContext ctx) {
+            MarkdownStyles.CodeBlockStyle style = ctx.styles().codeBlock();
+            DocumentTextStyle rawStyle = DocumentTextStyle.builder()
+                    .fontName(style.family().resolve(false, false))
+                    .size(style.size())
+                    .color(ctx.tokens().colors().muted())
+                    .decoration(DocumentTextDecoration.DEFAULT)
+                    .build();
+            String[] lines = node.raw().isEmpty() ? new String[]{" "} : node.raw().split("\n", -1);
+            for (String line : lines) {
+                String content = line.isEmpty() ? " " : line;
+                host.addParagraph(p -> p.text(content).textStyle(rawStyle).lineSpacing(style.lineSpacing()));
+            }
         }
     }
 

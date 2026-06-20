@@ -13,5 +13,5 @@ package io.github.demchaav.markdown.model.inline;
  */
 public sealed interface InlineNode
         permits TextRun, CodeRun, StrongRun, EmphasisRun, StrikethroughRun,
-                LinkRun, ImageRun, LineBreakRun, FootnoteRefRun {
+                LinkRun, ImageRun, LineBreakRun, FootnoteRefRun, UnsupportedInlineRun {
 }

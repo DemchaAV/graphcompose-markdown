@@ -40,6 +40,7 @@ public final class MarkdownComposer {
     private final FlexmarkAstMapper mapper;
     private final CustomBlockParser customBlockParser;
     private final boolean customBlocksEnabled;
+    private final boolean strict;
     private final MarkdownTheme theme;
 
     private MarkdownComposer(Builder builder) {
@@ -47,7 +48,22 @@ public final class MarkdownComposer {
         this.mapper = new FlexmarkAstMapper();
         this.customBlockParser = new CustomBlockParser(parser, mapper);
         this.customBlocksEnabled = builder.customBlocks;
+        this.strict = builder.strict;
         this.theme = builder.theme;
+    }
+
+    /**
+     * Builds a {@link Rendered}, first rejecting unsupported content if strict mode is on.
+     * In the default lenient mode unsupported blocks/inline are surfaced as raw text instead.
+     */
+    private Rendered toRendered(MarkdownDocument document) {
+        if (strict) {
+            String unsupported = UnsupportedScanner.firstUnsupported(document);
+            if (unsupported != null) {
+                throw new UnsupportedMarkdownException("strict mode: " + unsupported);
+            }
+        }
+        return new Rendered(document, theme);
     }
 
     /**
@@ -84,7 +100,7 @@ public final class MarkdownComposer {
         MarkdownDocument document = customBlocksEnabled
                 ? customBlockParser.parse(markdown)
                 : mapper.map(parser.parse(markdown));
-        return new Rendered(document, theme);
+        return toRendered(document);
     }
 
     /**
@@ -101,7 +117,7 @@ public final class MarkdownComposer {
      */
     public Rendered render(com.vladsch.flexmark.util.ast.Document flexmarkDocument) {
         Objects.requireNonNull(flexmarkDocument, "flexmarkDocument");
-        return new Rendered(mapper.map(flexmarkDocument), theme);
+        return toRendered(mapper.map(flexmarkDocument));
     }
 
     /**
@@ -112,7 +128,7 @@ public final class MarkdownComposer {
      * @return a {@link Rendered} ready to write to PDF
      */
     public Rendered render(MarkdownDocument document) {
-        return new Rendered(Objects.requireNonNull(document, "document"), theme);
+        return toRendered(Objects.requireNonNull(document, "document"));
     }
 
     /** Builder for {@link MarkdownComposer}. */
@@ -120,6 +136,7 @@ public final class MarkdownComposer {
 
         private MarkdownTheme theme = DefaultMarkdownTheme.light();
         private boolean customBlocks = true;
+        private boolean strict = false;
 
         private Builder() {
         }
@@ -143,6 +160,21 @@ public final class MarkdownComposer {
          */
         public Builder customBlocks(boolean enabled) {
             this.customBlocks = enabled;
+            return this;
+        }
+
+        /**
+         * Enables strict mode (default off). In strict mode {@link #render} throws an
+         * {@link UnsupportedMarkdownException} if the document contains content the
+         * library cannot render faithfully (a raw HTML block, unmodelled inline HTML,
+         * …). In the default lenient mode that content is surfaced as raw text instead
+         * of being silently dropped.
+         *
+         * @param enabled whether to reject unsupported content
+         * @return this builder
+         */
+        public Builder strictMode(boolean enabled) {
+            this.strict = enabled;
             return this;
         }
 

@@ -79,10 +79,31 @@ public final class CustomBlockParser {
         String[] lines = text.split("\n", -1);
         List<MarkdownNode> result = new ArrayList<>();
         StringBuilder normal = new StringBuilder();
+        String codeFence = null; // the active ``` / ~~~ fence run, or null when outside a code block
         int i = 0;
         while (i < lines.length) {
-            Matcher open = OPEN.matcher(lines[i].strip());
-            if (isOpen(lines[i]) && open.matches()) {
+            String line = lines[i];
+
+            // A ::: line inside a fenced code block is code, not a custom-block fence — copy
+            // the whole fenced block verbatim so Flexmark renders it as code.
+            if (codeFence != null) {
+                normal.append(line).append('\n');
+                if (closesFence(line, codeFence)) {
+                    codeFence = null;
+                }
+                i++;
+                continue;
+            }
+            String fence = fenceMarker(line);
+            if (fence != null) {
+                codeFence = fence;
+                normal.append(line).append('\n');
+                i++;
+                continue;
+            }
+
+            Matcher open = OPEN.matcher(line.strip());
+            if (isOpen(line) && open.matches()) {
                 flushNormal(normal, result, footnoteNumbers);
                 String type = open.group(1).toLowerCase();
                 String variant = open.group(2);
@@ -90,13 +111,24 @@ public final class CustomBlockParser {
                 int depth = 1;
                 int j = i + 1;
                 int innerStart = j;
+                String innerFence = null; // a code fence opened inside this custom block
                 while (j < lines.length) {
-                    if (isOpen(lines[j])) {
-                        depth++;
-                    } else if (isClose(lines[j])) {
-                        depth--;
-                        if (depth == 0) {
-                            break;
+                    String inner = lines[j];
+                    if (innerFence != null) {
+                        if (closesFence(inner, innerFence)) {
+                            innerFence = null;
+                        }
+                    } else {
+                        String f = fenceMarker(inner);
+                        if (f != null) {
+                            innerFence = f;
+                        } else if (isOpen(inner)) {
+                            depth++;
+                        } else if (isClose(inner)) {
+                            depth--;
+                            if (depth == 0) {
+                                break;
+                            }
                         }
                     }
                     j++;
@@ -105,12 +137,47 @@ public final class CustomBlockParser {
                 result.add(new CustomBlockNode(type, variant, parseBlocks(inner, footnoteNumbers)));
                 i = (j < lines.length) ? j + 1 : j; // skip the closing fence
             } else {
-                normal.append(lines[i]).append('\n');
+                normal.append(line).append('\n');
                 i++;
             }
         }
         flushNormal(normal, result, footnoteNumbers);
         return result;
+    }
+
+    /** The leading run of {@code >=3} backticks or tildes (indent {@code <=3}), or {@code null}. */
+    private static String fenceMarker(String line) {
+        int indent = 0;
+        while (indent < line.length() && line.charAt(indent) == ' ') {
+            indent++;
+        }
+        if (indent > 3 || indent >= line.length()) {
+            return null;
+        }
+        char c = line.charAt(indent);
+        if (c != '`' && c != '~') {
+            return null;
+        }
+        int end = indent;
+        while (end < line.length() && line.charAt(end) == c) {
+            end++;
+        }
+        return (end - indent) >= 3 ? line.substring(indent, end) : null;
+    }
+
+    /** A line closes the given fence: same fence char, at least as long, nothing but the run. */
+    private static boolean closesFence(String line, String openFence) {
+        String stripped = line.strip();
+        if (stripped.length() < openFence.length()) {
+            return false;
+        }
+        char c = openFence.charAt(0);
+        for (int k = 0; k < stripped.length(); k++) {
+            if (stripped.charAt(k) != c) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void flushNormal(StringBuilder normal, List<MarkdownNode> result, Map<String, Integer> footnoteNumbers) {

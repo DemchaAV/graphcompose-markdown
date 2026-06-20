@@ -7,6 +7,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## v0.2.0 — Planned
 
 ### Public API
+- **No silent content loss.** Unmodelled blocks (raw HTML, …) and inline HTML now
+  surface as their original source — new `UnsupportedBlockNode` / `UnsupportedInlineRun`
+  — rather than being dropped. `MarkdownComposer.builder().strictMode(true)` instead
+  rejects such a document with `UnsupportedMarkdownException`.
+- **The `:::` custom-block scanner respects code fences.** A `:::`-prefixed line inside
+  a ``` ``` ```/`~~~` fenced code block is treated as code, not a custom-block fence.
+- **Built themes are immutable.** A `MarkdownTheme`'s `RendererRegistry` is frozen when
+  the theme is built; derive a new theme with `MarkdownTheme.builder(theme)` to change
+  renderers (mutating a built theme's registry throws).
 - **GFM tables.** `TableNode` / `TableCellNode` / `ColumnAlignment` in the model,
   parsed via `flexmark-ext-tables` and rendered by a `TableRenderer` (even
   fixed-width columns, styled header row, per-column alignment). Adds
@@ -70,6 +79,9 @@ and the project follows [Semantic Versioning](https://semver.org/).
   PDFs.
 - Table mapper test (alignments / header / rows) and a table render smoke test;
   a theme-packs test renders the same content through every pack.
+- **Engine hardening tests** (`EngineRobustnessTest`): `:::` inside a fenced code block
+  stays code, unsupported HTML (block + inline) is surfaced not dropped, strict mode
+  rejects it, and a built theme's registry is immutable.
 
 ## v0.1.0 — Planned
 

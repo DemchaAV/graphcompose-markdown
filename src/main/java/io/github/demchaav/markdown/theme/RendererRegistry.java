@@ -24,6 +24,12 @@ public final class RendererRegistry {
     private final Map<Class<? extends MarkdownNode>, NodeRenderer<? extends MarkdownNode>> renderers;
     private final Map<String, NodeRenderer<CustomBlockNode>> customBlockRenderers;
 
+    /**
+     * Once frozen (when its owning {@link MarkdownTheme} is built) the registry is
+     * read-only, so a published theme is genuinely immutable and safe to share.
+     */
+    private boolean frozen;
+
     /** Creates an empty registry. */
     public RendererRegistry() {
         this.renderers = new HashMap<>();
@@ -31,7 +37,8 @@ public final class RendererRegistry {
     }
 
     /**
-     * Creates a registry copied from another.
+     * Creates a (mutable) registry copied from another. The copy is never frozen, so a
+     * theme can always be derived from a built — and therefore frozen — theme.
      *
      * @param source the registry to copy bindings from
      */
@@ -39,6 +46,20 @@ public final class RendererRegistry {
         Objects.requireNonNull(source, "source");
         this.renderers = new HashMap<>(source.renderers);
         this.customBlockRenderers = new HashMap<>(source.customBlockRenderers);
+    }
+
+    /** Marks the registry read-only. Package-private — invoked when a theme is built. */
+    RendererRegistry freeze() {
+        this.frozen = true;
+        return this;
+    }
+
+    private void ensureMutable() {
+        if (frozen) {
+            throw new IllegalStateException(
+                    "this registry belongs to a built MarkdownTheme and is immutable; "
+                            + "derive a new theme with MarkdownTheme.builder(theme) to change renderers");
+        }
     }
 
     /**
@@ -50,6 +71,7 @@ public final class RendererRegistry {
      * @return this registry, for chaining
      */
     public <N extends MarkdownNode> RendererRegistry register(Class<N> type, NodeRenderer<N> renderer) {
+        ensureMutable();
         renderers.put(Objects.requireNonNull(type, "type"), Objects.requireNonNull(renderer, "renderer"));
         return this;
     }
@@ -65,6 +87,7 @@ public final class RendererRegistry {
      * @return this registry, for chaining
      */
     public RendererRegistry registerCustomBlock(String type, NodeRenderer<CustomBlockNode> renderer) {
+        ensureMutable();
         customBlockRenderers.put(
                 Objects.requireNonNull(type, "type").toLowerCase(Locale.ROOT),
                 Objects.requireNonNull(renderer, "renderer"));

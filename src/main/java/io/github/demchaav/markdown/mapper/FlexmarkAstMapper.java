@@ -249,8 +249,10 @@ public final class FlexmarkAstMapper {
         if (node instanceof FootnoteBlock) {
             return null; // definitions are collected and rendered as a Notes section at the end
         }
-        // Unsupported block (raw HTML block, etc.) — skipped for now.
-        return null;
+        // Unmodelled block (raw HTML block, HTML comment, …): preserve the source text so
+        // it is surfaced rather than silently lost (strict mode rejects it; see the composer).
+        String raw = node.getChars().toString();
+        return raw.isBlank() ? null : new UnsupportedBlockNode(node.getNodeName(), raw);
     }
 
     private MarkdownNode mapTable(TableBlock table) {
@@ -368,12 +370,15 @@ public final class FlexmarkAstMapper {
             return new TextRun(decodeEntity(entity.getChars().toString()));
         }
         if (node instanceof HtmlInline inline) {
-            String html = inline.getChars().toString().trim().toLowerCase();
+            String raw = inline.getChars().toString();
+            String html = raw.trim().toLowerCase();
             if (html.equals("<br>") || html.equals("<br/>") || html.equals("<br />")) {
                 return new LineBreakRun(true);
             }
-            return null; // other inline HTML is dropped for now
+            return new UnsupportedInlineRun(raw); // surface other inline HTML, don't drop it
         }
-        return null;
+        // Unmodelled inline: keep the source so it is surfaced rather than silently lost.
+        String raw = node.getChars().toString();
+        return raw.isBlank() ? null : new UnsupportedInlineRun(raw);
     }
 }
