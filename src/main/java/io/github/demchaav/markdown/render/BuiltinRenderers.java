@@ -181,11 +181,20 @@ public final class BuiltinRenderers {
                     .color(ctx.tokens().colors().muted())
                     .decoration(DocumentTextDecoration.DEFAULT)
                     .build();
-            String[] lines = node.raw().isEmpty() ? new String[]{" "} : node.raw().split("\n", -1);
-            for (String line : lines) {
-                String content = line.isEmpty() ? " " : line;
-                host.addParagraph(p -> p.text(content).textStyle(rawStyle).lineSpacing(style.lineSpacing()));
-            }
+            // stripTrailing drops the source's trailing newline so it does not render as a
+            // spurious blank line; render in a tight panel (like code) so a multi-line raw
+            // block reads as one cohesive, page-break-safe chunk rather than loose paragraphs.
+            String raw = node.raw().stripTrailing();
+            String[] lines = raw.isEmpty() ? new String[]{" "} : raw.split("\n", -1);
+            host.addSection(panel -> {
+                panel.softPanel(style.background(), style.cornerRadius(), style.padding());
+                panel.keepTogether();
+                panel.spacing(1);
+                for (String line : lines) {
+                    String content = line.isEmpty() ? " " : line;
+                    panel.addParagraph(p -> p.text(content).textStyle(rawStyle).lineSpacing(style.lineSpacing()));
+                }
+            });
         }
     }
 

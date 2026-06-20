@@ -366,6 +366,12 @@ public final class FlexmarkAstMapper {
             Integer number = footnoteNumbers.get().get(footnoteLabel(footnote.getText()));
             return number != null ? new FootnoteRefRun(number) : null;
         }
+        if (node instanceof LinkRef || node instanceof ImageRef) {
+            // An undefined reference link/image (e.g. [TODO], [text][missing]) renders as its
+            // literal source in CommonMark — brackets and all. Surface it as plain text, not
+            // "unsupported" content, so strict mode does not reject ordinary bracketed text.
+            return new TextRun(node.getChars().toString());
+        }
         if (node instanceof HtmlEntity entity) {
             return new TextRun(decodeEntity(entity.getChars().toString()));
         }
