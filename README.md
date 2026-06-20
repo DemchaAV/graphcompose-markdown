@@ -251,6 +251,21 @@ composer.render(markdownDocument).writePdf(out);
 (The `:::` custom-block extraction is a text-level pre-pass, so it only runs for the
 `render(String)` entry point.)
 
+## Examples
+
+Runnable examples live in [`examples/`](examples/) — render an inline string,
+**read a Markdown file and write a PDF**, render the same content through every theme,
+or wire a custom `:::` block renderer. Build the library once, then run one:
+
+```bash
+./mvnw -B -ntp -DskipTests install        # install the library into your local Maven repo
+cd examples && ../mvnw exec:java \
+  -Dexec.mainClass=io.github.demchaav.markdown.examples.RenderMarkdownFileExample \
+  -Dexec.args="../README.md README.pdf"
+```
+
+See [examples/README.md](examples/README.md) for the full list.
+
 ## Documentation
 
 - **[Architecture](docs/architecture.md)** — the pipeline, the semantic model, and why

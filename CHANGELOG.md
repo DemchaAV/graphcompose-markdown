@@ -57,6 +57,8 @@ and the project follows [Semantic Versioning](https://semver.org/).
   architecture diagram, a theme-pack gallery and code samples with screenshots
   (`assets/readme/`). Added deep-dive guides — `docs/architecture.md`,
   `docs/theming.md`, `docs/custom-renderers.md` — plus `CONTRIBUTING.md`.
+- **Runnable examples** in `examples/` (a standalone module): quickstart, render a
+  Markdown file to a PDF, a theme gallery, and a custom `:::` block renderer.
 
 ### Tests
 - **Fixture-driven smoke tests.** Markdown fixtures under
