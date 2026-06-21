@@ -116,6 +116,44 @@ composer.render(md).writePdf(Path.of("release-notes.pdf"));
 //     composer.render(md).writePdf(outputStream);
 ```
 
+## Command-line (CLI)
+
+A standalone `cli/` module renders Markdown to PDF from the shell — no Java code
+required. Build the executable fat-jar (it bundles every dependency):
+
+```bash
+./mvnw -q -ntp install -DskipTests        # install the library to ~/.m2
+./mvnw -f cli/pom.xml -q -ntp package     # -> cli/target/graph-compose-markdown-cli.jar
+```
+
+Then render:
+
+```bash
+# basic: writes README.pdf next to the input
+java -jar cli/target/graph-compose-markdown-cli.jar README.md
+
+# pick a theme, an output path, an image base dir and an emoji dir
+java -jar cli/target/graph-compose-markdown-cli.jar docs/guide.md \
+    -o build/guide.pdf -t github-dark -i docs/assets -e docs/emoji
+
+# read from stdin
+cat notes.md | java -jar cli/target/graph-compose-markdown-cli.jar - -o notes.pdf
+```
+
+| Option | Meaning |
+|---|---|
+| `INPUT` | Markdown file, or `-` for stdin |
+| `-o, --output FILE` | Output PDF (default: input name with `.pdf`, or `out.pdf` for stdin) |
+| `-t, --theme NAME` | `light` (default), `dark`, `github-light`, `github-dark`, `academic`, `minimal`, `business` |
+| `-i, --images DIR` | Base dir for relative image paths (default: the input file's dir) |
+| `-e, --emoji DIR` | Dir of `<shortcode>.png` files to render `:shortcode:` inline |
+| `--mono-jetbrains` | Render code in bundled JetBrains Mono |
+| `--strict` | Fail on unsupported Markdown instead of degrading |
+| `-h, --help` / `-V, --version` | Usage / version |
+
+The CLI module is standalone (outside the main build), so it never affects the
+published library artifact.
+
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
