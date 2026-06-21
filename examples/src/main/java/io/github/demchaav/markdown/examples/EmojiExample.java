@@ -11,10 +11,10 @@ import java.nio.file.Path;
  * Emoji shortcodes ({@code :rocket:}) rendered as inline images via a
  * {@link ClasspathEmojiResolver}.
  *
- * <p>The bundled {@code /emoji/*.png} are simple coloured placeholders — drop real
- * Twemoji PNGs (named by shortcode) into {@code examples/src/main/resources/emoji/} to
- * render actual emoji. A shortcode with no image (e.g. {@code :shrug:}) falls back to
- * its literal text rather than a broken glyph.</p>
+ * <p>The bundled {@code /emoji/*.png} are real Twemoji images (CC-BY 4.0), named by
+ * shortcode. Add more by dropping {@code <shortcode>.png} files into
+ * {@code examples/src/main/resources/emoji/}. A shortcode with no image (e.g.
+ * {@code :shrug:}) falls back to its literal text rather than a broken glyph.</p>
  *
  * <pre>
  *   ../mvnw -f pom.xml exec:java \
