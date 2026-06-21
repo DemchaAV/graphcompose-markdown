@@ -31,9 +31,9 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.AlertsAndOutlineExample` | The five GitHub alerts + a navigable heading outline | `alerts.pdf` |
 | `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
 
-The emoji example bundles simple coloured **placeholder** PNGs under
-[`src/main/resources/emoji/`](src/main/resources/emoji/) — replace them with real
-Twemoji PNGs (named by shortcode) to render actual emoji.
+The emoji example bundles real **Twemoji** PNGs (CC-BY 4.0) under
+[`src/main/resources/emoji/`](src/main/resources/emoji/), named by shortcode — add
+more by dropping `<shortcode>.png` files there (see `ATTRIBUTION.txt`).
 
 (`…examples` = `io.github.demchaav.markdown.examples`.)
 

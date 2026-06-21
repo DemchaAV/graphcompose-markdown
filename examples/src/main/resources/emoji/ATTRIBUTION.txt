@@ -1,0 +1,12 @@
+Twemoji
+=======
+
+The emoji PNGs in this directory (rocket, white_check_mark, tada, fire, star) are from
+Twemoji — https://github.com/twitter/twemoji — used here to demonstrate emoji rendering.
+
+Copyright 2020 Twitter, Inc and other contributors.
+Graphics licensed under CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
+
+Files are named by their Markdown shortcode (e.g. rocket.png for :rocket:). Add more by
+dropping the corresponding Twemoji 72x72 PNG, renamed to <shortcode>.png, into this
+folder.
