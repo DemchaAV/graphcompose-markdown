@@ -18,6 +18,8 @@ import com.demcha.compose.document.table.DocumentTableColumn;
 import com.demcha.compose.document.table.DocumentTableStyle;
 import com.demcha.compose.document.table.DocumentTableTextAnchor;
 import io.github.demchaav.markdown.extension.CodeToken;
+import io.github.demchaav.markdown.model.AlertNode;
+import io.github.demchaav.markdown.model.AlertType;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.ColumnAlignment;
 import io.github.demchaav.markdown.model.CustomBlockNode;
@@ -73,6 +75,7 @@ public final class BuiltinRenderers {
         registry.register(CustomBlockNode.class, new CustomBlockDispatchRenderer());
         registry.register(FootnotesNode.class, new FootnotesRenderer());
         registry.register(UnsupportedBlockNode.class, new UnsupportedBlockRenderer());
+        registry.register(AlertNode.class, new AlertRenderer());
     }
 
     /**
@@ -448,6 +451,49 @@ public final class BuiltinRenderers {
         public void render(CustomBlockNode node, SectionBuilder host, RenderContext ctx) {
             NodeRenderer<CustomBlockNode> renderer = ctx.customBlockRenderer(node.type());
             (renderer != null ? renderer : fallback).render(node, host, ctx);
+        }
+    }
+
+    /**
+     * Renders a GitHub-style alert (`> [!NOTE]`, …) as a colour-coded, left-accented
+     * callout with a bold title line in the alert's colour.
+     */
+    public static final class AlertRenderer implements NodeRenderer<AlertNode> {
+        @Override
+        public void render(AlertNode node, SectionBuilder host, RenderContext ctx) {
+            MarkdownStyles.CalloutStyle style = ctx.styles().callout();
+            DocumentColor accent = accentFor(node.type());
+            DocumentColor background = accent.withOpacity(0.12);
+            DocumentTextStyle titleStyle = DocumentTextStyle.builder()
+                    .fontName(ctx.tokens().typography().bodyFamily().resolve(true, false))
+                    .size(ctx.tokens().typography().bodySize())
+                    .color(accent)
+                    .decoration(DocumentTextDecoration.DEFAULT)
+                    .build();
+            host.addSection(panel -> {
+                // Round only the right corners — the left edge meets the accent bar.
+                panel.softPanel(background, DocumentCornerRadius.right(style.cornerRadius()), style.padding());
+                panel.accentLeft(accent, style.accentWidth());
+                panel.keepTogether();
+                panel.addParagraph(p -> p.text(node.type().title()).textStyle(titleStyle));
+                ctx.renderBlocks(node.content(), panel);
+            });
+        }
+
+        private static DocumentColor accentFor(AlertType type) {
+            switch (type) {
+                case TIP:
+                    return DocumentColor.rgb(26, 127, 55);    // green
+                case IMPORTANT:
+                    return DocumentColor.rgb(130, 80, 223);   // purple
+                case WARNING:
+                    return DocumentColor.rgb(154, 103, 0);    // amber
+                case CAUTION:
+                    return DocumentColor.rgb(207, 34, 46);    // red
+                case NOTE:
+                default:
+                    return DocumentColor.rgb(9, 105, 218);    // blue
+            }
         }
     }
 

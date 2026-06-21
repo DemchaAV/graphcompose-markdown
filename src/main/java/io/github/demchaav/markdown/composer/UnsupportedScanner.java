@@ -1,5 +1,6 @@
 package io.github.demchaav.markdown.composer;
 
+import io.github.demchaav.markdown.model.AlertNode;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.FootnoteDefinitionNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
@@ -57,6 +58,8 @@ final class UnsupportedScanner {
             return scanBlocks(quote.content());
         } else if (node instanceof CustomBlockNode custom) {
             return scanBlocks(custom.content());
+        } else if (node instanceof AlertNode alert) {
+            return scanBlocks(alert.content());
         } else if (node instanceof ListNode list) {
             for (ListItemNode item : list.items()) {
                 String found = scanBlocks(item.content());

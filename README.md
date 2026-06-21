@@ -103,8 +103,9 @@ composer.render(md).writePdf(Path.of("release-notes.pdf"));
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
 `inline code` / links, ordered & unordered (nested) lists, **task lists**,
 **syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
-**GFM tables** (with per-column alignment), **footnotes**, and `:::` custom blocks
-(e.g. callouts).
+**GFM tables** (with per-column alignment), **footnotes**, **GitHub-style alerts**
+(`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), and `:::`
+custom blocks (e.g. callouts).
 
 Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
 mirrors the document's heading tree.
