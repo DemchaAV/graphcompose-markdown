@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.theme;
 
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
+import io.github.demchaav.markdown.extension.EmojiResolver;
 import io.github.demchaav.markdown.extension.ImageResolver;
 import io.github.demchaav.markdown.extension.RegexSyntaxHighlighter;
 import io.github.demchaav.markdown.extension.SyntaxHighlighter;
@@ -32,6 +33,7 @@ public final class MarkdownTheme {
     private final RendererRegistry registry;
     private final ImageResolver imageResolver;
     private final SyntaxHighlighter highlighter;
+    private final EmojiResolver emojiResolver;
     private final List<FontFamilyDefinition> fontFamilies;
 
     private MarkdownTheme(Builder builder) {
@@ -42,6 +44,7 @@ public final class MarkdownTheme {
         this.registry = new RendererRegistry(builder.registry).freeze();
         this.imageResolver = builder.imageResolver;
         this.highlighter = builder.highlighter;
+        this.emojiResolver = builder.emojiResolver;
         this.fontFamilies = List.copyOf(builder.fontFamilies);
     }
 
@@ -63,6 +66,11 @@ public final class MarkdownTheme {
     /** @return the code syntax highlighter */
     public SyntaxHighlighter highlighter() {
         return highlighter;
+    }
+
+    /** @return the emoji resolver (shortcode → inline image; default resolves nothing) */
+    public EmojiResolver emojiResolver() {
+        return emojiResolver;
     }
 
     /**
@@ -111,12 +119,14 @@ public final class MarkdownTheme {
         private final RendererRegistry registry;
         private ImageResolver imageResolver;
         private SyntaxHighlighter highlighter;
+        private EmojiResolver emojiResolver;
         private final List<FontFamilyDefinition> fontFamilies = new ArrayList<>();
 
         private Builder() {
             this.registry = new RendererRegistry();
             this.imageResolver = new DefaultImageResolver();
             this.highlighter = new RegexSyntaxHighlighter();
+            this.emojiResolver = EmojiResolver.none();
         }
 
         private Builder(MarkdownTheme base) {
@@ -125,6 +135,7 @@ public final class MarkdownTheme {
             this.registry = new RendererRegistry(base.registry);
             this.imageResolver = base.imageResolver;
             this.highlighter = base.highlighter;
+            this.emojiResolver = base.emojiResolver;
             this.fontFamilies.addAll(base.fontFamilies);
         }
 
@@ -201,6 +212,18 @@ public final class MarkdownTheme {
          */
         public Builder highlighter(SyntaxHighlighter newHighlighter) {
             this.highlighter = Objects.requireNonNull(newHighlighter, "highlighter");
+            return this;
+        }
+
+        /**
+         * Sets the emoji resolver — maps {@code :shortcode:} to inline image bytes
+         * (default {@link EmojiResolver#none()}, which renders shortcodes as text).
+         *
+         * @param newEmojiResolver the resolver
+         * @return this builder
+         */
+        public Builder emojiResolver(EmojiResolver newEmojiResolver) {
+            this.emojiResolver = Objects.requireNonNull(newEmojiResolver, "emojiResolver");
             return this;
         }
 
