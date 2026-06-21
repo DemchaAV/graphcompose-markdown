@@ -1,5 +1,6 @@
 package io.github.demchaav.markdown.parser;
 
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.emoji.EmojiExtension;
 import com.vladsch.flexmark.ext.footnotes.FootnoteExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
@@ -29,7 +30,7 @@ public final class FlexmarkMarkdownParser {
         options.set(Parser.EXTENSIONS, List.of(
                 StrikethroughExtension.create(), TablesExtension.create(),
                 TaskListExtension.create(), FootnoteExtension.create(),
-                EmojiExtension.create()));
+                EmojiExtension.create(), AutolinkExtension.create()));
         this.parser = Parser.builder(options).build();
     }
 
