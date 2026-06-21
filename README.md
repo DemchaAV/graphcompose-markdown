@@ -34,6 +34,24 @@ Markdown ──Flexmark──▶ Flexmark AST ──mapper──▶ Semantic mod
 
 > Status: early preview (`0.1.0-SNAPSHOT`). The API may change before `1.0.0`.
 
+## Showcase
+
+One Markdown document that uses **every** feature — and describes the library while doing
+it — rendered straight to PDF. Open the source and the result:
+**[`showcase.md`](assets/readme/showcase.md)** → **[`showcase.pdf`](assets/readme/showcase.pdf)**.
+
+<table>
+<tr>
+<td align="center"><img src="assets/readme/showcase-p1.png" width="250" alt="Showcase — title block, alert, inline emoji, lists"></td>
+<td align="center"><img src="assets/readme/showcase-p2.png" width="250" alt="Showcase — highlighted code, aligned table, colour-coded alerts"></td>
+<td align="center"><img src="assets/readme/showcase-p4.png" width="250" alt="Showcase — an embedded reskinned render and the architecture diagram"></td>
+</tr>
+</table>
+
+Front-matter title block, headings → PDF outline, inline formatting, autolinks, emoji,
+nested & task lists, syntax-highlighted code, GFM tables, all five GitHub alerts,
+blockquotes, footnotes, `:::` custom blocks and an embedded image — all on those pages.
+
 ## Why this library
 
 - **Separation of content, appearance and layout.** Reskin a document by swapping a
