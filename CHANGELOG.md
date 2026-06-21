@@ -31,6 +31,9 @@ by version.
   `SyntaxHighlighter` SPI.
 
 ### Public API — notable behaviour
+- **Bare-URL autolinking.** Plain `https://…` URLs and email addresses in text become
+  links (`flexmark-ext-autolink`). The mapper now also flattens Flexmark's `TextBase`
+  wrapper node, so wrapped inline content is mapped rather than swallowed.
 - **Links degrade instead of crashing.** A Markdown link with a relative / anchor /
   schemeless href (`[x](#section)`, `[doc](page.html)`, `[x](../up)`, `[x](/abs)`) now
   renders as link-styled text rather than aborting the whole render — the engine only

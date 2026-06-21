@@ -361,9 +361,15 @@ public final class FlexmarkAstMapper {
     private List<InlineNode> mapInlines(Node parent) {
         List<InlineNode> result = new ArrayList<>();
         for (Node child = parent.getFirstChild(); child != null; child = child.getNext()) {
-            InlineNode mapped = mapInline(child);
-            if (mapped != null) {
-                result.add(mapped);
+            if (child instanceof TextBase) {
+                // A transparent wrapper Flexmark inserts (e.g. for autolinking) — flatten it,
+                // so the Link/Text nodes inside are mapped rather than swallowed whole.
+                result.addAll(mapInlines(child));
+            } else {
+                InlineNode mapped = mapInline(child);
+                if (mapped != null) {
+                    result.add(mapped);
+                }
             }
         }
         return result;

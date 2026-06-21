@@ -101,7 +101,8 @@ composer.render(md).writePdf(Path.of("release-notes.pdf"));
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
-`inline code` / links, ordered & unordered (nested) lists, **task lists**,
+`inline code` / links (plus **bare-URL autolinking**), ordered & unordered (nested)
+lists, **task lists**,
 **syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
 **GFM tables** (with per-column alignment), **footnotes**, **GitHub-style alerts**
 (`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), **emoji
