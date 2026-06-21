@@ -15,7 +15,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Maps a Flexmark AST into the library's independent {@link MarkdownDocument}
@@ -85,6 +88,43 @@ public final class FlexmarkAstMapper {
             return null;
         }
         return title.unescape();
+    }
+
+    private static final Pattern ALERT_MARKER =
+            Pattern.compile("^\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)]\\s*$", Pattern.CASE_INSENSITIVE);
+
+    /** The alert type if the blockquote's first line is a GitHub alert marker, else {@code null}. */
+    private static AlertType alertType(BlockQuote quote) {
+        Node first = quote.getFirstChild();
+        if (!(first instanceof Paragraph)) {
+            return null;
+        }
+        // The marker must be alone on the first line (GitHub requires it).
+        String firstLine = first.getChars().toString().split("\n", 2)[0].strip();
+        Matcher matcher = ALERT_MARKER.matcher(firstLine);
+        return matcher.matches() ? AlertType.valueOf(matcher.group(1).toUpperCase(Locale.ROOT)) : null;
+    }
+
+    /** Drops the alert marker line from the first paragraph of the already-mapped content. */
+    private static List<MarkdownNode> stripAlertMarker(List<MarkdownNode> content) {
+        if (content.isEmpty() || !(content.get(0) instanceof ParagraphNode first)) {
+            return content;
+        }
+        List<InlineNode> inlines = first.content();
+        int breakAt = -1;
+        for (int i = 0; i < inlines.size(); i++) {
+            if (inlines.get(i) instanceof LineBreakRun) {
+                breakAt = i;
+                break;
+            }
+        }
+        List<MarkdownNode> body = new ArrayList<>(content);
+        if (breakAt < 0) {
+            body.remove(0); // the first paragraph was only the marker line
+        } else {
+            body.set(0, new ParagraphNode(new ArrayList<>(inlines.subList(breakAt + 1, inlines.size()))));
+        }
+        return body;
     }
 
     private static String normalizeCodeText(String code) {
@@ -238,7 +278,9 @@ public final class FlexmarkAstMapper {
             return new CodeBlockNode("", normalizeCodeText(indented.getContentChars().toString()));
         }
         if (node instanceof BlockQuote quote) {
-            return new QuoteNode(mapBlocks(quote));
+            AlertType alert = alertType(quote);
+            List<MarkdownNode> content = mapBlocks(quote);
+            return alert != null ? new AlertNode(alert, stripAlertMarker(content)) : new QuoteNode(content);
         }
         if (node instanceof ThematicBreak) {
             return new ThematicBreakNode();

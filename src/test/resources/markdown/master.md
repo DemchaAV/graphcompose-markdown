@@ -56,6 +56,14 @@ plain text, rendered verbatim
 > Themes decide how all of this looks — design tokens for the cosmetics,
 > node renderers for the behaviour.
 
+## Alerts
+
+> [!NOTE]
+> GitHub-style alerts render as titled, colour-coded callouts.
+
+> [!WARNING]
+> Five types are supported: note, tip, important, warning and caution.
+
 ## Tables
 
 | Feature     | Status | Since |

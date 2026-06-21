@@ -31,6 +31,10 @@ by version.
   `SyntaxHighlighter` SPI.
 
 ### Public API — notable behaviour
+- **GitHub-style alerts.** A blockquote whose first line is `[!NOTE]` / `[!TIP]` /
+  `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]` renders as a titled, colour-coded callout
+  (new `AlertNode` / `AlertType`); any other blockquote stays a plain quote. The marker
+  must be alone on the first line (GitHub's rule).
 - **PDF outline from headings.** Headings (h1–h6) become a nested PDF bookmark tree, so
   the viewer's outline/navigation pane mirrors the document structure (titles are the
   plain heading text; nesting follows heading level).
