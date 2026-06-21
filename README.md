@@ -106,7 +106,8 @@ lists, **task lists**,
 **syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
 **GFM tables** (with per-column alignment), **footnotes**, **GitHub-style alerts**
 (`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), **emoji
-shortcodes** (`:rocket:`), and `:::` custom blocks (e.g. callouts).
+shortcodes** (`:rocket:`), **YAML front matter** (a `---` … `---` title block), and
+`:::` custom blocks (e.g. callouts).
 
 Emoji shortcodes render as **inline images** when an `EmojiResolver` is configured
 (e.g. `ClasspathEmojiResolver` with bundled Twemoji PNGs); otherwise they fall back to

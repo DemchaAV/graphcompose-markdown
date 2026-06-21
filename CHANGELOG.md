@@ -31,6 +31,10 @@ by version.
   `SyntaxHighlighter` SPI.
 
 ### Public API — notable behaviour
+- **YAML front matter.** A `---` … `---` metadata block at the top parses into a
+  `FrontMatterNode` (accessible key → values) and renders a title block (`title` /
+  `subtitle` / `author` / `date`) above a divider; other keys are kept for programmatic
+  use. A `---` mid-document stays a thematic break.
 - **Bare-URL autolinking.** Plain `https://…` URLs and email addresses in text become
   links (`flexmark-ext-autolink`). The mapper now also flattens Flexmark's `TextBase`
   wrapper node, so wrapped inline content is mapped rather than swallowed.

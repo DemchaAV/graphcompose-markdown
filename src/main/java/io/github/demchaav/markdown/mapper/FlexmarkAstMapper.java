@@ -7,6 +7,8 @@ import com.vladsch.flexmark.ext.footnotes.FootnoteBlock;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem;
 import com.vladsch.flexmark.ext.tables.*;
+import com.vladsch.flexmark.ext.yaml.front.matter.AbstractYamlFrontMatterVisitor;
+import com.vladsch.flexmark.ext.yaml.front.matter.YamlFrontMatterBlock;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
 import io.github.demchaav.markdown.model.*;
@@ -288,6 +290,11 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof TableBlock table) {
             return mapTable(table);
+        }
+        if (node instanceof YamlFrontMatterBlock) {
+            AbstractYamlFrontMatterVisitor visitor = new AbstractYamlFrontMatterVisitor();
+            visitor.visit(node);
+            return new FrontMatterNode(visitor.getData());
         }
         if (node instanceof FootnoteBlock) {
             return null; // definitions are collected and rendered as a Notes section at the end

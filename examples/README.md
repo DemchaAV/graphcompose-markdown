@@ -30,6 +30,7 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.CustomBlockExample` | A custom `:::note` renderer | `custom-block.pdf` |
 | `…examples.AlertsAndOutlineExample` | The five GitHub alerts + a navigable heading outline | `alerts.pdf` |
 | `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
+| `…examples.FrontMatterExample` | A YAML `---` front-matter title block | `front-matter.pdf` |
 
 The emoji example bundles real **Twemoji** PNGs (CC-BY 4.0) under
 [`src/main/resources/emoji/`](src/main/resources/emoji/), named by shortcode — add
