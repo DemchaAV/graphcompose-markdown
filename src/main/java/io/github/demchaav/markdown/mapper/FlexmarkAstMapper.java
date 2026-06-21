@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.mapper;
 
 import com.vladsch.flexmark.ast.*;
+import com.vladsch.flexmark.ext.emoji.Emoji;
 import com.vladsch.flexmark.ext.footnotes.Footnote;
 import com.vladsch.flexmark.ext.footnotes.FootnoteBlock;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
@@ -407,6 +408,9 @@ public final class FlexmarkAstMapper {
         if (node instanceof Footnote footnote) {
             Integer number = footnoteNumbers.get().get(footnoteLabel(footnote.getText()));
             return number != null ? new FootnoteRefRun(number) : null;
+        }
+        if (node instanceof Emoji emoji) {
+            return new EmojiRun(emoji.getText().toString());
         }
         if (node instanceof LinkRef || node instanceof ImageRef) {
             // An undefined reference link/image (e.g. [TODO], [text][missing]) renders as its

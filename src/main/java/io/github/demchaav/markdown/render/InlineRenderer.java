@@ -1,12 +1,16 @@
 package io.github.demchaav.markdown.render;
 
 import com.demcha.compose.document.dsl.RichText;
+import com.demcha.compose.document.image.DocumentImageData;
 import com.demcha.compose.document.node.DocumentLinkOptions;
+import com.demcha.compose.document.node.InlineImageAlignment;
 import com.demcha.compose.font.FontName;
 import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
+import io.github.demchaav.markdown.extension.EmojiResolver;
 import io.github.demchaav.markdown.model.inline.CodeRun;
+import io.github.demchaav.markdown.model.inline.EmojiRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
 import io.github.demchaav.markdown.model.inline.FootnoteRefRun;
 import io.github.demchaav.markdown.model.inline.ImageRun;
@@ -21,6 +25,7 @@ import io.github.demchaav.markdown.theme.style.InlineStyle;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Flattens a tree of {@link InlineNode}s into a GraphCompose {@link RichText}.
@@ -29,9 +34,26 @@ import java.util.List;
  * variant; strikethrough uses the decoration enum, so the two compose freely.
  * Inline code switches to the code font and colour. Links are emitted via
  * {@link RichText#link(String, String)}; formatting inside a link degrades to
- * the link style.</p>
+ * the link style. Emoji shortcodes resolve to inline images via the theme's
+ * {@link EmojiResolver}, or fall back to literal {@code :shortcode:} text.</p>
  */
 public final class InlineRenderer {
+
+    private final EmojiResolver emojiResolver;
+
+    /** Creates an inline renderer with no emoji image resolver (shortcodes stay text). */
+    public InlineRenderer() {
+        this(EmojiResolver.none());
+    }
+
+    /**
+     * Creates an inline renderer with an emoji resolver.
+     *
+     * @param emojiResolver resolves emoji shortcodes to inline images
+     */
+    public InlineRenderer(EmojiResolver emojiResolver) {
+        this.emojiResolver = emojiResolver == null ? EmojiResolver.none() : emojiResolver;
+    }
 
     /**
      * Renders inline nodes into a new rich-text run list.
@@ -88,6 +110,8 @@ public final class InlineRenderer {
                         ? List.of(new TextRun(link.url())) : link.children());
             } else if (node instanceof ImageRun image) {
                 out.append(image.alt());
+            } else if (node instanceof EmojiRun emoji) {
+                out.append(':').append(emoji.shortcode()).append(':');
             } else if (node instanceof UnsupportedInlineRun unsupported) {
                 out.append(unsupported.raw());
             } else if (node instanceof LineBreakRun) {
@@ -130,6 +154,17 @@ public final class InlineRenderer {
                 rich.plain("\n");
             } else {
                 rich.space();
+            }
+        } else if (node instanceof EmojiRun emoji) {
+            Optional<byte[]> image = emojiResolver.resolve(emoji.shortcode());
+            if (image.isPresent()) {
+                double size = base.size();
+                rich.image(DocumentImageData.fromBytes(image.get()), size, size,
+                        InlineImageAlignment.CENTER, 0.0, decor.linkUrl() == null
+                                ? null : new DocumentLinkOptions(decor.linkUrl()));
+            } else {
+                // No image resolver — render the readable shortcode, never a broken glyph.
+                emit(rich, ":" + emoji.shortcode() + ":", base, decor, false);
             }
         } else if (node instanceof UnsupportedInlineRun unsupported) {
             // Surface unmodelled inline (e.g. raw HTML) literally, rather than dropping it.

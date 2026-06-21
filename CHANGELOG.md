@@ -31,6 +31,11 @@ by version.
   `SyntaxHighlighter` SPI.
 
 ### Public API — notable behaviour
+- **Emoji shortcodes.** `:rocket:` parses to an `EmojiRun`; a pluggable `EmojiResolver`
+  (default: none) renders it as an **inline image** — e.g. `ClasspathEmojiResolver` with
+  bundled Twemoji PNGs — or it falls back to readable `:shortcode:` text. (PDF fonts have
+  no emoji glyphs, so text is the honest default; the SPI lets an inline-SVG or font
+  strategy drop in later without other changes.)
 - **GitHub-style alerts.** A blockquote whose first line is `[!NOTE]` / `[!TIP]` /
   `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]` renders as a titled, colour-coded callout
   (new `AlertNode` / `AlertType`); any other blockquote stays a plain quote. The marker

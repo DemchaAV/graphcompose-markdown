@@ -104,8 +104,12 @@ Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough
 `inline code` / links, ordered & unordered (nested) lists, **task lists**,
 **syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
 **GFM tables** (with per-column alignment), **footnotes**, **GitHub-style alerts**
-(`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), and `:::`
-custom blocks (e.g. callouts).
+(`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), **emoji
+shortcodes** (`:rocket:`), and `:::` custom blocks (e.g. callouts).
+
+Emoji shortcodes render as **inline images** when an `EmojiResolver` is configured
+(e.g. `ClasspathEmojiResolver` with bundled Twemoji PNGs); otherwise they fall back to
+readable `:shortcode:` text, since PDF fonts carry no emoji glyphs.
 
 Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
 mirrors the document's heading tree.
