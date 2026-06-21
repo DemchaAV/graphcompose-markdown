@@ -520,6 +520,9 @@ public final class BuiltinRenderers {
      * callout with a bold title line in the alert's colour.
      */
     public static final class AlertRenderer implements NodeRenderer<AlertNode> {
+        /** Icon height relative to the title's body size, so the glyph reads a touch taller than the caps. */
+        private static final double ICON_SIZE_FACTOR = 1.15;
+
         @Override
         public void render(AlertNode node, SectionBuilder host, RenderContext ctx) {
             MarkdownStyles.CalloutStyle style = ctx.styles().callout();
@@ -531,12 +534,18 @@ public final class BuiltinRenderers {
                     .color(accent)
                     .decoration(DocumentTextDecoration.DEFAULT)
                     .build();
+            double iconSize = ctx.tokens().typography().bodySize() * ICON_SIZE_FACTOR;
             host.addSection(panel -> {
                 // Round only the right corners — the left edge meets the accent bar.
                 panel.softPanel(background, DocumentCornerRadius.right(style.cornerRadius()), style.padding());
                 panel.accentLeft(accent, style.accentWidth());
                 panel.keepTogether();
-                panel.addParagraph(p -> p.text(node.type().title()).textStyle(titleStyle));
+                panel.addParagraph(p -> p.rich(rich -> {
+                    if (AlertIcons.append(rich, node.type(), accent, iconSize)) {
+                        rich.plain("  ");
+                    }
+                    rich.style(node.type().title(), titleStyle);
+                }));
                 ctx.renderBlocks(node.content(), panel);
             });
         }
