@@ -83,6 +83,17 @@ class GithubEmojiTest {
     }
 
     @Test
+    void classpathResolverRejectsPathTraversalShortcodes() {
+        // Untrusted Markdown must not be able to walk the classpath via the resource path.
+        ClasspathEmojiResolver resolver = new ClasspathEmojiResolver("emoji");
+
+        assertThat(resolver.resolve("../../rocket")).isEmpty();
+        assertThat(resolver.resolve("../rocket")).isEmpty();
+        assertThat(resolver.resolve("a/b")).isEmpty();
+        assertThat(resolver.resolve("rocket")).isPresent(); // the legitimate one still resolves
+    }
+
+    @Test
     void classpathResolvedEmojiRendersAsAnInlineImage() throws Exception {
         MarkdownTheme theme = MarkdownTheme.builder(DefaultMarkdownTheme.light())
                 .emojiResolver(new ClasspathEmojiResolver("emoji"))

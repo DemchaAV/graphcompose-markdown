@@ -83,6 +83,17 @@ class EngineRobustnessTest {
     }
 
     @Test
+    void relativeAndAnchorLinksDoNotCrashTheRender() {
+        // The engine only annotates absolute-URI links; a schemeless href (anchor, relative,
+        // root-relative) must render as link-styled text, not abort the whole document.
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light())
+                .render("[home](#intro), [doc](readme.html), [up](../x), [abs](/p), [ok](https://example.com)")
+                .toPdfBytes();
+
+        assertThat(new String(pdf, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void unsupportedHtmlBlockIsSurfacedNotDropped() {
         MarkdownDocument doc = model("<div class=\"note\">important content</div>");
 
