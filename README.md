@@ -129,7 +129,10 @@ shortcodes** (`:rocket:`), **YAML front matter** (a `---` … `---` title block)
 
 Emoji shortcodes render as **inline images** when an `EmojiResolver` is configured
 (e.g. `ClasspathEmojiResolver` with bundled Twemoji PNGs); otherwise they fall back to
-readable `:shortcode:` text, since PDF fonts carry no emoji glyphs.
+readable `:shortcode:` text, since PDF fonts carry no emoji glyphs. **Geometric emoji**
+typed literally — coloured circles `🔴🟢🟡`, squares `🟥🟩`, `🔺`, diamonds `🔶🔷` and
+stars `⭐` — render as **native vector shapes** in their own colour (no font, no image),
+instead of a missing-glyph `?`.
 
 Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
 mirrors the document's heading tree.

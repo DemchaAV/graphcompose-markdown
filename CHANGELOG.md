@@ -6,6 +6,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Geometric emoji render as vector shapes.** Literal Unicode emoji that map cleanly to a
+  shape — coloured circles (`🔴🟠🟡🟢🔵🟣🟤⚫⚪`), squares (`🟥🟧🟨🟩🟦🟪🟫⬛⬜`), `🔺`,
+  diamonds (`🔶🔷🔸🔹`) and stars (`⭐🌟`) — now draw as native inline vector shapes in their
+  conventional colour, instead of the missing-glyph `?` that PDF fonts produce (they have no
+  colour-emoji glyphs). Uses the engine's inline-shape primitives, so it needs no font and no
+  image. Other emoji are unchanged (the `:shortcode:` image path still applies); code spans stay
+  verbatim.
+
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
   alert's accent colour — an info circle (Note), a lightbulb (Tip), a message bubble
@@ -24,6 +33,8 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ### Tests
 - `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
   presence + parseability), so a missing or broken icon file fails the build.
+- `EmojiShapesTest` asserts geometric emoji become inline shape runs (and plain text /
+  non-geometric emoji are left untouched).
 
 ## v0.1.0 — 2026-06-21
 
