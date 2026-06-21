@@ -6,9 +6,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Nothing has been published yet. Everything below ships in the **first release**
-(`0.1.0`) — there is no earlier released version, so entries are grouped by area, not
-by version.
+_No changes yet._
+
+## v0.1.0 — 2026-06-21
+
+First public release — a themeable Markdown → GraphCompose document composer. Entries
+are grouped by area.
 
 ### Public API — foundation
 - `MarkdownComposer` — parse Markdown and render to PDF (`toPdfBytes()`,
@@ -87,4 +90,5 @@ by version.
   theme-composition tests; and `EngineRobustnessTest` (code-fence `:::`,
   unsupported-content handling, strict mode, theme immutability).
 
-[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/commits/main
+[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.1.0...HEAD
+[v0.1.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.1.0

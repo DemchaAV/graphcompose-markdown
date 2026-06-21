@@ -32,7 +32,7 @@ Markdown ──Flexmark──▶ Flexmark AST ──mapper──▶ Semantic mod
                                         types downstream)
 ```
 
-> Status: early preview (`0.1.0-SNAPSHOT`). The API may change before `1.0.0`.
+> Status: first release (`0.1.0`). The API may still change before `1.0.0`.
 
 ## Showcase
 
