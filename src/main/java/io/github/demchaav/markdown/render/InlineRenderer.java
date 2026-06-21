@@ -210,7 +210,13 @@ public final class InlineRenderer {
                 .color(color)
                 .decoration(decoration)
                 .build();
-        rich.style(text, style);
+        // Geometric emoji (🔴 🟩 ⭐ …) have no glyph in PDF fonts and would render as "?";
+        // map them to native inline vector shapes. Code stays verbatim (Markdown rule).
+        if (!code && EmojiShapes.contains(text)) {
+            EmojiShapes.append(rich, text, style, size);
+        } else {
+            rich.style(text, style);
+        }
     }
 
     /**
