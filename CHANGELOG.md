@@ -6,7 +6,24 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-_No changes yet._
+### Changed
+- **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
+  alert's accent colour — an info circle (Note), a lightbulb (Tip), a message bubble
+  (Important), a warning triangle (Warning) and an octagon (Caution). The glyphs are drawn
+  from small bundled SVGs (GitHub Octicons for Note / Important / Warning, MIT-licensed —
+  see `render/icons/ATTRIBUTION.txt`) through the engine's inline-shape API (`RichText.shape`
+  + `ShapeOutline.path`), filled so the `!` / `i` marks are crisp cut-outs at any size. They
+  are true vector — no font glyph and no raster image — and
+  are painted in the theme's accent, so they recolour automatically with the alert colours.
+  If an icon resource is ever unavailable, the title still renders (just without a glyph).
+
+### Documentation
+- Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
+  callouts show their new icons.
+
+### Tests
+- `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
+  presence + parseability), so a missing or broken icon file fails the build.
 
 ## v0.1.0 — 2026-06-21
 

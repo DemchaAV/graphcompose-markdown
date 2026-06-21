@@ -1,0 +1,46 @@
+Third-party alert icons bundled with graph-compose-markdown
+==========================================================
+
+These small SVGs ship inside the jar; only their geometry is used (each icon is
+recoloured to its alert's accent colour at render time).
+
+================================================================================
+MIT-licensed icons
+================================================================================
+alert-note.svg       = GitHub Octicons "info-16"     https://github.com/primer/octicons
+alert-important.svg  = GitHub Octicons "report-16"    https://github.com/primer/octicons
+alert-warning.svg    = GitHub Octicons "alert-16"     https://github.com/primer/octicons
+alert-caution.svg    = Phosphor Icons  "warning-octagon" (Bold weight)
+                                                     https://github.com/phosphor-icons/core
+
+The MIT License applies to the four icons above:
+
+    Copyright (c) GitHub, Inc.          (Octicons)
+    Copyright (c) 2023 Phosphor Icons   (Phosphor)
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+================================================================================
+Public-domain icon
+================================================================================
+alert-tip.svg        = CFPB Design System "cfpb-icons" (light bulb)
+                                                     https://github.com/cfpb/design-system
+
+    Dedicated to the public domain under Creative Commons Zero v1.0 Universal
+    (CC0 1.0). No rights reserved; attribution provided as a courtesy.
