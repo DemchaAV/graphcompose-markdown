@@ -14,6 +14,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
   colour-emoji glyphs). Uses the engine's inline-shape primitives, so it needs no font and no
   image. Other emoji are unchanged (the `:shortcode:` image path still applies); code spans stay
   verbatim.
+- **Command-line renderer.** A standalone `cli/` module (outside the main build, like
+  `examples/`) builds an executable fat-jar that renders Markdown to PDF from the shell:
+  `java -jar graph-compose-markdown-cli.jar INPUT.md [-o OUT.pdf] [-t THEME] [-i IMAGES]
+  [-e EMOJI] [--mono-jetbrains] [--strict]`, reads stdin via `-`, and picks any built-in
+  theme pack. It is a thin picocli wrapper over `MarkdownComposer`; being out of the
+  reactor, it never affects the published library artifact. See the README "Command-line"
+  section.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the

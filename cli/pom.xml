@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Standalone CLI module — intentionally NOT part of the main reactor, so the
+        library's build and Maven Central publish stay clean (mirrors examples/).
+        Build the library first, then build the CLI fat-jar:
+
+            ./mvnw -q -ntp install -DskipTests          # install the library to ~/.m2
+            ./mvnw -f cli/pom.xml -q -ntp package       # build cli/target/graph-compose-markdown-cli.jar
+
+        Run it:
+
+            java -jar cli/target/graph-compose-markdown-cli.jar README.md -o README.pdf
+            java -jar cli/target/graph-compose-markdown-cli.jar doc.md -t github-dark
+    -->
+    <groupId>io.github.demchaav</groupId>
+    <artifactId>graph-compose-markdown-cli</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>graph-compose-markdown CLI</name>
+    <description>Command-line Markdown to PDF renderer built on graph-compose-markdown.</description>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gcmd.version>0.2.0-SNAPSHOT</gcmd.version>
+        <picocli.version>4.7.6</picocli.version>
+        <!-- The CLI is never published as a Maven artifact. -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.demchaav</groupId>
+            <artifactId>graph-compose-markdown</artifactId>
+            <version>${gcmd.version}</version>
+        </dependency>
+        <!-- Needed only for the JetBrains Mono code-font option (graph-compose-fonts). -->
+        <dependency>
+            <groupId>io.github.demchaav</groupId>
+            <artifactId>graph-compose-fonts</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>${picocli.version}</version>
+        </dependency>
+        <!-- No-op SLF4J binding: silences the "No SLF4J providers were found" notice that
+             PDFBox/graph-compose would otherwise print to stderr on every run. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>2.0.18</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>graph-compose-markdown-cli</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>io.github.demchaav.markdown.cli.MarkdownCli</mainClass>
+                                </transformer>
+                                <!-- Merge META-INF/services so flexmark/pdfbox service lookups survive shading. -->
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
