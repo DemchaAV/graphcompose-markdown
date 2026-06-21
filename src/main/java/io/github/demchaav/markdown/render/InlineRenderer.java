@@ -157,13 +157,12 @@ public final class InlineRenderer {
             }
         } else if (node instanceof EmojiRun emoji) {
             Optional<byte[]> image = emojiResolver.resolve(emoji.shortcode());
-            if (image.isPresent()) {
+            if (image.isPresent() && image.get().length > 0) {
                 double size = base.size();
                 rich.image(DocumentImageData.fromBytes(image.get()), size, size,
-                        InlineImageAlignment.CENTER, 0.0, decor.linkUrl() == null
-                                ? null : new DocumentLinkOptions(decor.linkUrl()));
+                        InlineImageAlignment.CENTER, 0.0, linkOptionsOrNull(decor.linkUrl()));
             } else {
-                // No image resolver — render the readable shortcode, never a broken glyph.
+                // No image (or none resolved) — render the readable shortcode, never a broken glyph.
                 emit(rich, ":" + emoji.shortcode() + ":", base, decor, false);
             }
         } else if (node instanceof UnsupportedInlineRun unsupported) {
@@ -190,7 +189,14 @@ public final class InlineRenderer {
                     .color(base.linkColor())
                     .decoration(decoration)
                     .build();
-            rich.with(text, linkStyle, new DocumentLinkOptions(decor.linkUrl()));
+            DocumentLinkOptions options = linkOptionsOrNull(decor.linkUrl());
+            if (options != null) {
+                rich.with(text, linkStyle, options);
+            } else {
+                // Relative / anchor / schemeless href: the engine only annotates absolute-URI
+                // links, so render link-styled text without an annotation rather than crash.
+                rich.style(text, linkStyle);
+            }
             return;
         }
 
@@ -205,6 +211,41 @@ public final class InlineRenderer {
                 .decoration(decoration)
                 .build();
         rich.style(text, style);
+    }
+
+    /**
+     * Link options for an absolute-URI target, or {@code null} for a relative / anchor /
+     * schemeless href. {@code DocumentLinkOptions} rejects a schemeless URI (and the engine
+     * only annotates absolute links), so a {@code null} here means "render styled text, no
+     * annotation" instead of aborting the whole render.
+     */
+    private static DocumentLinkOptions linkOptionsOrNull(String url) {
+        if (url == null || !hasScheme(url)) {
+            return null;
+        }
+        try {
+            return new DocumentLinkOptions(url);
+        } catch (RuntimeException malformed) {
+            return null; // scheme present but the URI is malformed — degrade to styled text
+        }
+    }
+
+    /** Whether {@code url} begins with a URI scheme ({@code scheme:}), per RFC 3986. */
+    private static boolean hasScheme(String url) {
+        int colon = url.indexOf(':');
+        if (colon <= 0) {
+            return false;
+        }
+        for (int i = 0; i < colon; i++) {
+            char c = url.charAt(i);
+            boolean ok = i == 0
+                    ? Character.isLetter(c)
+                    : Character.isLetterOrDigit(c) || c == '+' || c == '.' || c == '-';
+            if (!ok) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Emits a footnote reference as a small accent-coloured {@code [N]} on the baseline. */
