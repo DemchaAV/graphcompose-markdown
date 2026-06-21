@@ -25,6 +25,7 @@ import io.github.demchaav.markdown.model.ColumnAlignment;
 import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.FootnoteDefinitionNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
+import io.github.demchaav.markdown.model.FrontMatterNode;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.ImageNode;
 import io.github.demchaav.markdown.model.ListItemNode;
@@ -76,6 +77,7 @@ public final class BuiltinRenderers {
         registry.register(FootnotesNode.class, new FootnotesRenderer());
         registry.register(UnsupportedBlockNode.class, new UnsupportedBlockRenderer());
         registry.register(AlertNode.class, new AlertRenderer());
+        registry.register(FrontMatterNode.class, new FrontMatterRenderer());
     }
 
     /**
@@ -451,6 +453,65 @@ public final class BuiltinRenderers {
         public void render(CustomBlockNode node, SectionBuilder host, RenderContext ctx) {
             NodeRenderer<CustomBlockNode> renderer = ctx.customBlockRenderer(node.type());
             (renderer != null ? renderer : fallback).render(node, host, ctx);
+        }
+    }
+
+    /**
+     * Renders YAML front matter as a title block: the {@code title}, an italic
+     * {@code subtitle}, and an {@code author} · {@code date} line, above a divider rule.
+     * Unknown keys are ignored (they remain on the node for programmatic use).
+     */
+    public static final class FrontMatterRenderer implements NodeRenderer<FrontMatterNode> {
+        @Override
+        public void render(FrontMatterNode node, SectionBuilder host, RenderContext ctx) {
+            String title = node.first("title");
+            String subtitle = node.first("subtitle");
+            String meta = joinMeta(node.first("author"), node.first("date"));
+            if (title == null && subtitle == null && meta.isEmpty()) {
+                return; // metadata only — nothing to render
+            }
+
+            var typo = ctx.tokens().typography();
+            var colors = ctx.tokens().colors();
+
+            if (title != null) {
+                DocumentTextStyle titleStyle = DocumentTextStyle.builder()
+                        .fontName(typo.headingFamily().resolve(true, false))
+                        .size(typo.headingSize(1) * 1.25)
+                        .color(colors.heading())
+                        .decoration(DocumentTextDecoration.DEFAULT)
+                        .build();
+                host.addParagraph(p -> p.text(title).textStyle(titleStyle));
+            }
+            if (subtitle != null) {
+                DocumentTextStyle subtitleStyle = DocumentTextStyle.builder()
+                        .fontName(typo.bodyFamily().resolve(false, true))
+                        .size(typo.bodySize() * 1.15)
+                        .color(colors.muted())
+                        .decoration(DocumentTextDecoration.DEFAULT)
+                        .build();
+                host.addParagraph(p -> p.text(subtitle).textStyle(subtitleStyle)
+                        .margin(new DocumentInsets(2, 0, 0, 0)));
+            }
+            if (!meta.isEmpty()) {
+                DocumentTextStyle metaStyle = DocumentTextStyle.builder()
+                        .fontName(typo.bodyFamily().resolve(false, false))
+                        .size(typo.bodySize())
+                        .color(colors.muted())
+                        .decoration(DocumentTextDecoration.DEFAULT)
+                        .build();
+                host.addParagraph(p -> p.text(meta).textStyle(metaStyle)
+                        .margin(new DocumentInsets(4, 0, 0, 0)));
+            }
+            MarkdownStyles.RuleStyle rule = ctx.styles().rule();
+            host.addLine(line -> line.horizontal(rule.width()).color(rule.color()).thickness(rule.thickness()));
+        }
+
+        private static String joinMeta(String author, String date) {
+            if (author != null && date != null) {
+                return author + "  ·  " + date;
+            }
+            return author != null ? author : (date != null ? date : "");
         }
     }
 
