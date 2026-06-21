@@ -28,6 +28,12 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.RenderMarkdownFileExample` | Reads a **Markdown file** → writes a **PDF file** | `sample.pdf`, or your `-Dexec.args` |
 | `…examples.ThemeGalleryExample` | The same Markdown through every bundled theme | `gallery/*.pdf` |
 | `…examples.CustomBlockExample` | A custom `:::note` renderer | `custom-block.pdf` |
+| `…examples.AlertsAndOutlineExample` | The five GitHub alerts + a navigable heading outline | `alerts.pdf` |
+| `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
+
+The emoji example bundles simple coloured **placeholder** PNGs under
+[`src/main/resources/emoji/`](src/main/resources/emoji/) — replace them with real
+Twemoji PNGs (named by shortcode) to render actual emoji.
 
 (`…examples` = `io.github.demchaav.markdown.examples`.)
 
