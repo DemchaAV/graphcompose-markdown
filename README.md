@@ -151,6 +151,20 @@ cat notes.md | java -jar cli/target/graph-compose-markdown-cli.jar - -o notes.pd
 | `--strict` | Fail on unsupported Markdown instead of degrading |
 | `-h, --help` / `-V, --version` | Usage / version |
 
+### Shortcut: the `gcmd` wrapper
+
+The module ships launcher scripts that find the jar next to themselves, so you can
+drop the `java -jar …` boilerplate:
+
+```bash
+cli/gcmd README.md -t github-dark        # Git Bash / WSL / macOS / Linux
+cli\gcmd.cmd README.md -t github-dark     # Windows (cmd / PowerShell)
+```
+
+Put the `cli/` folder on your `PATH` (or symlink/copy the matching `gcmd` script into
+a directory already on it) to call `gcmd` from anywhere. The wrappers print a build
+hint if the jar hasn't been built yet.
+
 The CLI module is standalone (outside the main build), so it never affects the
 published library artifact.
 

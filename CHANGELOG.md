@@ -19,8 +19,9 @@ and the project follows [Semantic Versioning](https://semver.org/).
   `java -jar graph-compose-markdown-cli.jar INPUT.md [-o OUT.pdf] [-t THEME] [-i IMAGES]
   [-e EMOJI] [--mono-jetbrains] [--strict]`, reads stdin via `-`, and picks any built-in
   theme pack. It is a thin picocli wrapper over `MarkdownComposer`; being out of the
-  reactor, it never affects the published library artifact. See the README "Command-line"
-  section.
+  reactor, it never affects the published library artifact. Ships `gcmd` / `gcmd.cmd`
+  launcher wrappers that resolve the jar relative to themselves (drop the `java -jar …`
+  boilerplate). See the README "Command-line" section.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
