@@ -281,8 +281,11 @@ public final class BuiltinRenderers {
                     .color(style.markerColor())
                     .decoration(DocumentTextDecoration.DEFAULT)
                     .build();
+            // A loose list (blank lines between items) gets the wider block spacing so its
+            // items read as separate paragraphs; a tight list stays compact.
+            double interItemSpacing = node.loose() ? ctx.styles().blockSpacing() : style.itemSpacing();
             host.addSection(listSection -> {
-                listSection.spacing(style.itemSpacing());
+                listSection.spacing(interItemSpacing);
                 int number = node.startNumber();
                 for (ListItemNode item : node.items()) {
                     String orderedMarker = number + ".";

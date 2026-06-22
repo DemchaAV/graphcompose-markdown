@@ -365,7 +365,8 @@ public final class FlexmarkAstMapper {
                 items.add(new ListItemNode(mapBlocks(item), checked));
             }
         }
-        return new ListNode(ordered, startNumber, items);
+        boolean loose = list instanceof ListBlock block && block.isLoose();
+        return new ListNode(ordered, startNumber, items, loose);
     }
 
     private List<InlineNode> mapInlines(Node parent) {
