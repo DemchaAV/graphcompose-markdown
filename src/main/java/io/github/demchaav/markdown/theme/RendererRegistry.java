@@ -120,19 +120,30 @@ public final class RendererRegistry {
     }
 
     /**
-     * Dispatches a node to its registered renderer. Nodes with no registered
-     * renderer are skipped.
+     * Dispatches a node to its registered renderer.
+     *
+     * <p>A node whose exact class has no registered renderer raises an
+     * {@link IllegalStateException} rather than being silently skipped — the standard
+     * renderers cover every built-in node type, so this only fires for a deliberately
+     * partial theme (or a future node type left unregistered), and failing loudly keeps
+     * the engine's no-silent-content-loss guarantee at the dispatch layer too.</p>
      *
      * @param node the node to render
      * @param host the section to render into
      * @param ctx  the render context
+     * @throws IllegalStateException if no renderer is registered for the node's class
      */
     @SuppressWarnings("unchecked")
     public void render(MarkdownNode node, SectionBuilder host, RenderContext ctx) {
         NodeRenderer<MarkdownNode> renderer =
                 (NodeRenderer<MarkdownNode>) renderers.get(node.getClass());
-        if (renderer != null) {
-            renderer.render(node, host, ctx);
+        if (renderer == null) {
+            throw new IllegalStateException(
+                    "no renderer registered for node type " + node.getClass().getName()
+                            + " — register one, or derive from a theme that does "
+                            + "(e.g. MarkdownTheme.builder(DefaultMarkdownTheme.light())), "
+                            + "so content is not silently dropped");
         }
+        renderer.render(node, host, ctx);
     }
 }

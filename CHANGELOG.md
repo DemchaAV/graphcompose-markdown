@@ -41,6 +41,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are true vector — no font glyph and no raster image — and
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
+- **The renderer dispatcher fails fast on an unregistered node type.** `RendererRegistry.render`
+  previously skipped a node whose exact class had no registered renderer, silently dropping it; it
+  now throws `IllegalStateException` naming the type. The built-in renderers cover every node type,
+  so this only affects a deliberately partial theme — failing loudly upholds the no-silent-content-
+  loss guarantee at the dispatch layer too.
 
 ### Fixed
 - **`examples/` builds on a clean checkout again.** The detached `examples/` module still
