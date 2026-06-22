@@ -15,7 +15,7 @@
     -->
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown-examples</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>graph-compose-markdown examples</name>
@@ -24,6 +24,9 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Track the library version from one place (mirrors cli/pom.xml's gcmd.version)
+             so the detached examples pom cannot drift behind the next snapshot bump. -->
+        <gcmd.version>0.2.0-SNAPSHOT</gcmd.version>
         <!-- Examples are never published. -->
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
@@ -33,7 +36,7 @@
         <dependency>
             <groupId>io.github.demchaav</groupId>
             <artifactId>graph-compose-markdown</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>${gcmd.version}</version>
         </dependency>
         <!-- Optional: only the rich-fonts example needs the bundled fonts. -->
         <dependency>
