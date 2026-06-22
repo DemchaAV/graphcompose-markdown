@@ -46,7 +46,7 @@ public final class MarkdownStyles {
                 tokens.typography().codeSize(),
                 tokens.colors().code(),
                 tokens.colors().link(),
-                true);
+                tokens.shape().underlineLinks());
     }
 
     /**
@@ -66,7 +66,7 @@ public final class MarkdownStyles {
                 tokens.typography().headingSize(level) * 0.85,
                 tokens.colors().code(),
                 tokens.colors().link(),
-                true);
+                tokens.shape().underlineLinks());
     }
 
     /** @return the base inline style used for plain text inside list items / quotes */
