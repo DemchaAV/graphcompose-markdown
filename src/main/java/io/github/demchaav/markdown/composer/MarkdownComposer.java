@@ -78,8 +78,9 @@ public final class MarkdownComposer {
     /**
      * Creates a composer for a theme.
      *
-     * @param theme the theme to render with
+     * @param theme the theme to render with; must not be {@code null}
      * @return a new composer
+     * @throws NullPointerException if {@code theme} is {@code null}
      */
     public static MarkdownComposer create(MarkdownTheme theme) {
         return builder().theme(theme).build();

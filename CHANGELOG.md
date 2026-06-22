@@ -37,6 +37,10 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
+- `MarkdownComposer.create` now documents its `@throws NullPointerException` for a null theme
+  (matching the Builder), and `custom-renderers.md` states plainly that a `:::` block
+  (`CustomBlockNode`) is the only seam for a third-party block type — the sealed model does not
+  allow new `MarkdownNode` subtypes.
 
 ### Tests
 - `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
