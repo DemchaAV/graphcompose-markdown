@@ -261,7 +261,7 @@ public final class MarkdownComposer {
         private void populate(DocumentSession session) {
             MarkdownStyles styles = new MarkdownStyles(theme.tokens());
             RenderContext ctx = new RenderContext(theme, styles,
-                    new InlineRenderer(theme.emojiResolver()), theme.imageResolver());
+                    new InlineRenderer(theme.emojiResolver(), theme.imageResolver()), theme.imageResolver());
             session.pageFlow(flow -> flow.addSection("Body", body -> {
                 body.spacing(styles.blockSpacing());
                 if (document.blocks().isEmpty()) {

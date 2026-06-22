@@ -9,6 +9,7 @@ import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
 import io.github.demchaav.markdown.extension.EmojiResolver;
+import io.github.demchaav.markdown.extension.ImageResolver;
 import io.github.demchaav.markdown.model.inline.CodeRun;
 import io.github.demchaav.markdown.model.inline.EmojiRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
@@ -24,6 +25,10 @@ import io.github.demchaav.markdown.model.inline.UnsupportedInlineRun;
 import io.github.demchaav.markdown.theme.style.InlineStyle;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,24 +40,42 @@ import java.util.Optional;
  * Inline code switches to the code font and colour. Links are emitted via
  * {@link RichText#link(String, String)}; formatting inside a link degrades to
  * the link style. Emoji shortcodes resolve to inline images via the theme's
- * {@link EmojiResolver}, or fall back to literal {@code :shortcode:} text.</p>
+ * {@link EmojiResolver}, or fall back to literal {@code :shortcode:} text. An
+ * inline image ({@code ![alt](src)} amid other text) resolves through the theme's
+ * {@link ImageResolver} to an inline image at line height (aspect ratio preserved),
+ * falling back to its alt text when the source cannot be resolved.</p>
  */
 public final class InlineRenderer {
 
-    private final EmojiResolver emojiResolver;
+    /** An image resolver that resolves nothing — inline images then fall back to their alt text. */
+    private static final ImageResolver NO_IMAGES = source -> Optional.empty();
 
-    /** Creates an inline renderer with no emoji image resolver (shortcodes stay text). */
+    private final EmojiResolver emojiResolver;
+    private final ImageResolver imageResolver;
+
+    /** Creates an inline renderer with no emoji or image resolver (shortcodes/images stay text). */
     public InlineRenderer() {
-        this(EmojiResolver.none());
+        this(EmojiResolver.none(), NO_IMAGES);
     }
 
     /**
-     * Creates an inline renderer with an emoji resolver.
+     * Creates an inline renderer with an emoji resolver and no image resolver.
      *
      * @param emojiResolver resolves emoji shortcodes to inline images
      */
     public InlineRenderer(EmojiResolver emojiResolver) {
+        this(emojiResolver, NO_IMAGES);
+    }
+
+    /**
+     * Creates an inline renderer with an emoji and an image resolver.
+     *
+     * @param emojiResolver resolves emoji shortcodes to inline images
+     * @param imageResolver resolves inline image sources ({@code ![alt](src)} amid text) to bytes
+     */
+    public InlineRenderer(EmojiResolver emojiResolver, ImageResolver imageResolver) {
         this.emojiResolver = emojiResolver == null ? EmojiResolver.none() : emojiResolver;
+        this.imageResolver = imageResolver == null ? NO_IMAGES : imageResolver;
     }
 
     /**
@@ -144,7 +167,11 @@ public final class InlineRenderer {
                     : link.children();
             appendAll(rich, children, base, decor.withLink(link.url()));
         } else if (node instanceof ImageRun image) {
-            if (!image.alt().isEmpty()) {
+            Optional<byte[]> bytes = imageResolver.resolve(image.source());
+            if (bytes.isPresent() && bytes.get().length > 0) {
+                appendInlineImage(rich, bytes.get(), base, decor);
+            } else if (!image.alt().isEmpty()) {
+                // Unresolved (or no resolver): fall back to the alt text rather than dropping it.
                 emit(rich, image.alt(), base, decor, false);
             }
         } else if (node instanceof FootnoteRefRun ref) {
@@ -169,6 +196,26 @@ public final class InlineRenderer {
             // Surface unmodelled inline (e.g. raw HTML) literally, rather than dropping it.
             emit(rich, unsupported.raw(), base, decor, false);
         }
+    }
+
+    /**
+     * Emits a resolved inline image at line height, preserving its aspect ratio (so a wide
+     * badge stays wide), and carrying any surrounding link annotation. If the bytes cannot be
+     * decoded for their dimensions, it falls back to a square box at line height.
+     */
+    private void appendInlineImage(RichText rich, byte[] data, InlineStyle base, Decor decor) {
+        double height = base.size();
+        double width = height;
+        try {
+            BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(data));
+            if (decoded != null && decoded.getHeight() > 0) {
+                width = height * ((double) decoded.getWidth() / decoded.getHeight());
+            }
+        } catch (IOException | RuntimeException ignored) {
+            // Undecodable bytes (e.g. SVG, which ImageIO does not read): keep the square box.
+        }
+        rich.image(DocumentImageData.fromBytes(data), width, height,
+                InlineImageAlignment.CENTER, 0.0, linkOptionsOrNull(decor.linkUrl()));
     }
 
     private void emit(RichText rich, String text, InlineStyle base, Decor decor, boolean code) {
