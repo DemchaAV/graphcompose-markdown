@@ -80,9 +80,19 @@ public final class MarkdownCli implements Callable<Integer> {
             return 2;
         }
 
-        String markdown = stdin
-                ? new String(System.in.readAllBytes(), StandardCharsets.UTF_8)
-                : Files.readString(inputPath, StandardCharsets.UTF_8);
+        String markdown;
+        try {
+            markdown = stdin
+                    ? new String(System.in.readAllBytes(), StandardCharsets.UTF_8)
+                    : Files.readString(inputPath, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            // A file that is not valid UTF-8 (a Windows ANSI / UTF-16 / BOM file, say) makes
+            // the strict decoder throw MalformedInputException; report it cleanly as an input
+            // error (exit 2) instead of leaking the decoder's stack trace.
+            System.err.println("error: cannot read " + (stdin ? "<stdin>" : input) + " as UTF-8: "
+                    + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+            return 2;
+        }
 
         Path out = output != null ? output : defaultOutput(stdin, inputPath);
         Path imgBase = imagesDir != null ? imagesDir
@@ -163,7 +173,26 @@ public final class MarkdownCli implements Callable<Integer> {
         };
     }
 
+    /**
+     * Builds the configured {@link CommandLine}. Package-private so tests can drive
+     * {@code newCommandLine().execute(args)} through the same wiring {@link #main} uses.
+     *
+     * @return a command line with the clean-error execution handler installed
+     */
+    static CommandLine newCommandLine() {
+        CommandLine cmd = new CommandLine(new MarkdownCli());
+        // Turn any uncaught exception (an unwritable output directory, a missing bundled font,
+        // …) into a clean `error: <message>` on stderr with a non-zero exit, instead of letting
+        // picocli's default handler dump a raw Java stack trace at the user.
+        cmd.setExecutionExceptionHandler((ex, commandLine, parseResult) -> {
+            String message = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+            commandLine.getErr().println("error: " + message);
+            return commandLine.getCommandSpec().exitCodeOnExecutionException();
+        });
+        return cmd;
+    }
+
     public static void main(String[] args) {
-        System.exit(new CommandLine(new MarkdownCli()).execute(args));
+        System.exit(newCommandLine().execute(args));
     }
 }

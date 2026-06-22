@@ -34,6 +34,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Fixed
+- **The CLI no longer dumps a stack trace on errors.** Failures outside the narrow render block
+  — an unwritable output directory, a missing bundled font, or a non-UTF-8 input file — leaked a
+  raw Java stack trace. The CLI now installs a picocli execution-exception handler that prints a
+  clean `error: <message>` with a non-zero exit, and a non-UTF-8 input file (a Windows ANSI /
+  UTF-16 / BOM file) is reported as `error: cannot read … as UTF-8` (exit 2) instead of a
+  `MalformedInputException` trace.
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
@@ -43,6 +51,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
   presence + parseability), so a missing or broken icon file fails the build.
 - `EmojiShapesTest` asserts geometric emoji become inline shape runs (and plain text /
   non-geometric emoji are left untouched).
+- `MarkdownCliTest` drives the CLI in-process through its real wiring — the `0`/`2` exit-code
+  contract (happy render, missing input, unknown theme, `--version`) plus the non-UTF-8 and
+  unwritable-output error paths, asserting each yields a clean `error:` message with no leaked
+  stack frame. The `cli/` module had no tests before; it now pins its own JUnit / AssertJ /
+  Surefire so `-f cli/pom.xml package` runs them.
 
 ## v0.1.0 — 2026-06-21
 
