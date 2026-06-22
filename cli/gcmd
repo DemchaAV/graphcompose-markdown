@@ -1,0 +1,17 @@
+#!/bin/sh
+# gcmd - Markdown -> PDF launcher (Git Bash / WSL / macOS / Linux). Resolves the fat-jar
+# next to this script, so it works from any directory. Put this cli/ folder on PATH (or
+# symlink this file into one) to call "gcmd" anywhere.
+prog="$0"
+case "$prog" in
+    */*) ;;                                  # invoked with a path
+    *) prog="$(command -v -- "$prog")" ;;    # invoked via PATH: resolve to a real path
+esac
+here=$(CDPATH= cd -- "$(dirname -- "$prog")" && pwd)
+jar="$here/target/graph-compose-markdown-cli.jar"
+if [ ! -f "$jar" ]; then
+    echo "gcmd: jar not found: $jar" >&2
+    echo "build it first: ./mvnw -q -ntp install -DskipTests && ./mvnw -f cli/pom.xml -q -ntp package" >&2
+    exit 1
+fi
+exec java -jar "$jar" "$@"
