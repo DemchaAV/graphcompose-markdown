@@ -34,6 +34,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Security
+- **Opt-in image-resolver sandbox.** `DefaultImageResolver` resolves a file source as-is by
+  default, so for untrusted Markdown an absolute path (`![x](/etc/passwd)`) or a `../` escape
+  could read an arbitrary local file into the PDF. New `DefaultImageResolver.sandboxed(baseDir)`
+  (and a `new DefaultImageResolver(baseDir, true)` constructor) confine filesystem resolution to
+  `baseDir`, rejecting absolute paths and `../` traversals; classpath resources are unaffected.
+  The default behaviour is unchanged — sandboxing is the explicit choice for untrusted input.
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
