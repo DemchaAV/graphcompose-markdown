@@ -17,11 +17,11 @@ Pure cosmetic values, grouped:
 
 | Group | Holds |
 |-------|-------|
-| `ColorTokens` | text, muted text, accent, links, surfaces, code background, quote bar, rules, table row background |
+| `ColorTokens` | text, muted text, accent, links, surface (the page background), code background, quote bar, rules, table row background |
 | `TypographyTokens` | body / heading / code font families, body & code sizes, line spacing, the six heading sizes |
 | `SpacingTokens` | block gaps, paddings, table cell padding |
 | `ShapeTokens` | corner radii, border/line weights |
-| `PageTokens` | page size, margins, content width, page background |
+| `PageTokens` | page size, margins, content width |
 | `SyntaxColors` | code highlight colors (keyword, string, comment, number, annotation, function) |
 
 Swap a token group to reskin everything that derives from it. Tokens are immutable
@@ -35,10 +35,11 @@ MarkdownTokens tokens = base.tokens()
 
 ## Layer 2 — component styles (`MarkdownStyles`)
 
-`MarkdownStyles` derives per-element styles (`HeadingStyle`, `CodeBlockStyle`,
-`ListStyle`, `QuoteStyle`, `TableStyle`, …) from the tokens. Renderers read styling
-exclusively from here (via the `RenderContext`), never from literal values — so a
-token change cascades everywhere automatically.
+`MarkdownStyles` derives per-element styles (`CodeBlockStyle`, `QuoteStyle`,
+`ListStyle`, `RuleStyle`, `CalloutStyle`, `TableStyle`) from the tokens; headings use an
+`InlineStyle` via `headingInline(level)`. Renderers read styling exclusively from here
+(via the `RenderContext`), never from literal values — so a token change cascades
+everywhere automatically.
 
 ## Layer 3 — node renderers
 
