@@ -111,4 +111,23 @@ class MarkdownCliTest {
         assertThat(result.err()).startsWith("error:");
         assertThat(result.err()).doesNotContain("\tat "); // no stack frame leaked
     }
+
+    @Test
+    void dashOutputWritesThePdfToStdout() throws IOException {
+        Path input = writeMarkdown("in.md", "# Hi\n\nWorld\n");
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(stdout, true, StandardCharsets.UTF_8));
+        int exitCode;
+        try {
+            exitCode = MarkdownCli.newCommandLine().execute(input.toString(), "-o", "-");
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertThat(exitCode).isZero();
+        byte[] pdf = stdout.toByteArray();
+        assertThat(pdf.length).isGreaterThan(100);
+        assertThat(new String(pdf, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
 }

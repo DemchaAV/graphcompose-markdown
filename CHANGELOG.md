@@ -41,6 +41,10 @@ and the project follows [Semantic Versioning](https://semver.org/).
   clean `error: <message>` with a non-zero exit, and a non-UTF-8 input file (a Windows ANSI /
   UTF-16 / BOM file) is reported as `error: cannot read … as UTF-8` (exit 2) instead of a
   `MalformedInputException` trace.
+- **CLI: `-o -` writes the PDF to stdout** (the status line stays on stderr), so the renderer can
+  be piped — `cat notes.md | gcmd - -o - > notes.pdf`. Previously `-o -` created a file literally
+  named `-`. Also corrected the `--mono-jetbrains` help text, which wrongly implied an extra
+  dependency is needed (the font is bundled in the CLI fat-jar).
 
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert

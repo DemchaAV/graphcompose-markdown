@@ -41,7 +41,8 @@ public final class MarkdownCli implements Callable<Integer> {
     private String input;
 
     @Option(names = {"-o", "--output"}, paramLabel = "FILE",
-            description = "Output PDF path. Default: the input name with a .pdf extension (out.pdf for stdin).")
+            description = "Output PDF path, or '-' to write the PDF to standard output. "
+                    + "Default: the input name with a .pdf extension (out.pdf for stdin).")
     private Path output;
 
     @Option(names = {"-t", "--theme"}, paramLabel = "NAME", defaultValue = "light",
@@ -57,7 +58,7 @@ public final class MarkdownCli implements Callable<Integer> {
     private Path emojiDir;
 
     @Option(names = {"--mono-jetbrains"},
-            description = "Render code in the bundled JetBrains Mono font (needs graph-compose-fonts).")
+            description = "Render code in the bundled JetBrains Mono font (bundled in this CLI).")
     private boolean monoJetbrains;
 
     @Option(names = {"--strict"},
@@ -94,7 +95,7 @@ public final class MarkdownCli implements Callable<Integer> {
             return 2;
         }
 
-        Path out = output != null ? output : defaultOutput(stdin, inputPath);
+        boolean toStdout = output != null && "-".equals(output.toString());
         Path imgBase = imagesDir != null ? imagesDir
                 : (inputPath != null && inputPath.toAbsolutePath().getParent() != null
                         ? inputPath.toAbsolutePath().getParent() : Path.of("."));
@@ -110,6 +111,21 @@ public final class MarkdownCli implements Callable<Integer> {
 
         MarkdownComposer composer = MarkdownComposer.builder().theme(theme).strictMode(strict).build();
 
+        // The status line always goes to stderr, so stdout can carry the raw PDF bytes for piping.
+        if (toStdout) {
+            try {
+                composer.render(markdown).writePdf(System.out);
+                System.out.flush();
+            } catch (Exception e) {
+                System.err.println("error: failed to render: "
+                        + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+                return 1;
+            }
+            System.err.println("Rendered " + (stdin ? "<stdin>" : input) + " -> <stdout>");
+            return 0;
+        }
+
+        Path out = output != null ? output : defaultOutput(stdin, inputPath);
         Path parent = out.toAbsolutePath().getParent();
         if (parent != null) {
             Files.createDirectories(parent);
