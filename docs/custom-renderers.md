@@ -127,6 +127,12 @@ dispatch by the block's `type`. Any unregistered `:::` type falls back to the bu
 extraction is a text-level pre-pass, so it runs only for `render(String)` (not for the
 bring-your-own-AST entry points).
 
+> The semantic model is **sealed**, so a `:::` block (`CustomBlockNode`) is the only way to
+> introduce a block type of your own. You can override or replace the renderer for any existing
+> node type, but you cannot add a new `MarkdownNode` subtype — the `NodeRenderer<N>` /
+> `MarkdownTheme.Builder.renderer(Class<N>, …)` generics bind to the existing node classes, not
+> to types you define.
+
 ## Syntax highlighting
 
 Code highlighting is a pluggable SPI:
