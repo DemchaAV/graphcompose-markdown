@@ -37,6 +37,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
+- Corrected the `LineBreakRun` Javadoc (a hard break is two trailing spaces or `<br>` — a
+  trailing backslash is not recognised by the parser and degrades to a soft break), and noted on
+  `ImageNode` / `ImageRun` / `LinkRun` that the `title` is captured for programmatic use but not
+  currently rendered.
+- Added bug-report and feature-request issue templates under `.github/ISSUE_TEMPLATE/`.
 
 ### Tests
 - `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
