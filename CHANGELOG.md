@@ -22,6 +22,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   reactor, it never affects the published library artifact. Ships `gcmd` / `gcmd.cmd`
   launcher wrappers that resolve the jar relative to themselves (drop the `java -jar …`
   boilerplate). See the README "Command-line" section.
+- **Link underlining is now a token — `ShapeTokens.underlineLinks` (default `true`).** It was
+  hardcoded, so a theme could not choose coloured-but-not-underlined links without replacing the
+  style layer (e.g. `MinimalTheme`, which colours links the same as body text, relied on the
+  hardcoded underline). `MarkdownStyles` now reads it from the theme's `ShapeTokens`; the two-arg
+  `ShapeTokens(cornerRadius, ruleThickness)` constructor still defaults it to `true`, so existing
+  themes are unchanged.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
