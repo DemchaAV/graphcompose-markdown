@@ -54,4 +54,70 @@ public record TypographyTokens(
         return new TypographyTokens(bodyFamily, headingFamily, newCodeFamily, bodySize, codeSize, lineSpacing,
                 headingSizes);
     }
+
+    /**
+     * Returns a copy with a different body font family.
+     *
+     * @param newBodyFamily the replacement body family
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withBodyFamily(FontFamily newBodyFamily) {
+        return new TypographyTokens(newBodyFamily, headingFamily, codeFamily, bodySize, codeSize, lineSpacing,
+                headingSizes);
+    }
+
+    /**
+     * Returns a copy with a different heading font family.
+     *
+     * @param newHeadingFamily the replacement heading family
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withHeadingFamily(FontFamily newHeadingFamily) {
+        return new TypographyTokens(bodyFamily, newHeadingFamily, codeFamily, bodySize, codeSize, lineSpacing,
+                headingSizes);
+    }
+
+    /**
+     * Returns a copy with a different body font size.
+     *
+     * @param newBodySize the replacement body size in points
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withBodySize(double newBodySize) {
+        return new TypographyTokens(bodyFamily, headingFamily, codeFamily, newBodySize, codeSize, lineSpacing,
+                headingSizes);
+    }
+
+    /**
+     * Returns a copy with a different code font size.
+     *
+     * @param newCodeSize the replacement code size in points
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withCodeSize(double newCodeSize) {
+        return new TypographyTokens(bodyFamily, headingFamily, codeFamily, bodySize, newCodeSize, lineSpacing,
+                headingSizes);
+    }
+
+    /**
+     * Returns a copy with a different body line-spacing multiplier.
+     *
+     * @param newLineSpacing the replacement line-spacing multiplier (1.0 = single)
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withLineSpacing(double newLineSpacing) {
+        return new TypographyTokens(bodyFamily, headingFamily, codeFamily, bodySize, codeSize, newLineSpacing,
+                headingSizes);
+    }
+
+    /**
+     * Returns a copy with different heading sizes.
+     *
+     * @param newHeadingSizes the replacement six heading sizes (h1…h6) in points
+     * @return a new {@code TypographyTokens}
+     */
+    public TypographyTokens withHeadingSizes(List<Double> newHeadingSizes) {
+        return new TypographyTokens(bodyFamily, headingFamily, codeFamily, bodySize, codeSize, lineSpacing,
+                newHeadingSizes);
+    }
 }

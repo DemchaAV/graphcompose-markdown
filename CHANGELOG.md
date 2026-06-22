@@ -22,6 +22,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   reactor, it never affects the published library artifact. Ships `gcmd` / `gcmd.cmd`
   launcher wrappers that resolve the jar relative to themselves (drop the `java -jar …`
   boilerplate). See the README "Command-line" section.
+- **Per-token `withX` copy methods on the leaf token records.** `ColorTokens` and
+  `TypographyTokens` previously exposed only `withCodeBackground`/`withAccent` and
+  `withCodeFamily`, so overriding any other single token meant rebuilding the whole record by
+  hand. Added the full set — every `ColorTokens` colour (`withText`, `withMuted`, `withHeading`,
+  `withLink`, `withCode`, `withTableRowBackground`, `withQuoteBar`, `withQuoteText`, `withRule`,
+  `withSurface` — the last accepts `null` for no page fill) and every `TypographyTokens` field
+  (`withBodyFamily`, `withHeadingFamily`, `withBodySize`, `withCodeSize`, `withLineSpacing`,
+  `withHeadingSizes`) — so the documented "override one token without copy-paste" workflow holds.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the

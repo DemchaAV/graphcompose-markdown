@@ -70,4 +70,114 @@ public record ColorTokens(
         return new ColorTokens(text, muted, heading, link, code, codeBackground,
                 tableRowBackground, quoteBar, quoteText, rule, newAccent, surface);
     }
+
+    /**
+     * Returns a copy with a different body text colour.
+     *
+     * @param newText the replacement body text colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withText(DocumentColor newText) {
+        return new ColorTokens(newText, muted, heading, link, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different muted (secondary) text colour.
+     *
+     * @param newMuted the replacement muted colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withMuted(DocumentColor newMuted) {
+        return new ColorTokens(text, newMuted, heading, link, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different heading text colour.
+     *
+     * @param newHeading the replacement heading colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withHeading(DocumentColor newHeading) {
+        return new ColorTokens(text, muted, newHeading, link, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different hyperlink colour.
+     *
+     * @param newLink the replacement link colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withLink(DocumentColor newLink) {
+        return new ColorTokens(text, muted, heading, newLink, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different inline-code text colour.
+     *
+     * @param newCode the replacement code colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withCode(DocumentColor newCode) {
+        return new ColorTokens(text, muted, heading, link, newCode, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different table body-row background colour.
+     *
+     * @param newTableRowBackground the replacement table row background
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withTableRowBackground(DocumentColor newTableRowBackground) {
+        return new ColorTokens(text, muted, heading, link, code, codeBackground,
+                newTableRowBackground, quoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different blockquote accent-bar colour.
+     *
+     * @param newQuoteBar the replacement quote-bar colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withQuoteBar(DocumentColor newQuoteBar) {
+        return new ColorTokens(text, muted, heading, link, code, codeBackground,
+                tableRowBackground, newQuoteBar, quoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different blockquote text colour.
+     *
+     * @param newQuoteText the replacement quote text colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withQuoteText(DocumentColor newQuoteText) {
+        return new ColorTokens(text, muted, heading, link, code, codeBackground,
+                tableRowBackground, quoteBar, newQuoteText, rule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different rule / divider colour.
+     *
+     * @param newRule the replacement rule colour
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withRule(DocumentColor newRule) {
+        return new ColorTokens(text, muted, heading, link, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, newRule, accent, surface);
+    }
+
+    /**
+     * Returns a copy with a different page-background (surface) colour.
+     *
+     * @param newSurface the replacement surface colour; {@code null} for no page fill
+     * @return a new {@code ColorTokens}
+     */
+    public ColorTokens withSurface(DocumentColor newSurface) {
+        return new ColorTokens(text, muted, heading, link, code, codeBackground,
+                tableRowBackground, quoteBar, quoteText, rule, accent, newSurface);
+    }
 }
