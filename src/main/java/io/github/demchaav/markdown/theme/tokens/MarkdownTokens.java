@@ -9,12 +9,13 @@ import java.util.Objects;
  * document without touching renderers; the {@code with*} methods make it easy to
  * derive a variant from an existing bundle.</p>
  *
- * @param colors     colour palette
- * @param typography fonts and the type scale
- * @param spacing    gaps and paddings
- * @param shape      corner radii and line weights
- * @param page       page geometry
- * @param syntax     code syntax-highlighting colours
+ * @param colors      colour palette
+ * @param typography  fonts and the type scale
+ * @param spacing     gaps and paddings
+ * @param shape       corner radii and line weights
+ * @param page        page geometry
+ * @param syntax      code syntax-highlighting colours
+ * @param alertColors per-variant alert / callout accent colours
  */
 public record MarkdownTokens(
         ColorTokens colors,
@@ -22,7 +23,8 @@ public record MarkdownTokens(
         SpacingTokens spacing,
         ShapeTokens shape,
         PageTokens page,
-        SyntaxColors syntax) {
+        SyntaxColors syntax,
+        AlertColors alertColors) {
 
     /** Validates every token group is present. */
     public MarkdownTokens {
@@ -32,6 +34,7 @@ public record MarkdownTokens(
         Objects.requireNonNull(shape, "shape");
         Objects.requireNonNull(page, "page");
         Objects.requireNonNull(syntax, "syntax");
+        Objects.requireNonNull(alertColors, "alertColors");
     }
 
     /**
@@ -49,13 +52,28 @@ public record MarkdownTokens(
     }
 
     /**
+     * Creates tokens with the default alert / callout accent palette.
+     *
+     * @param colors     colour palette
+     * @param typography fonts and the type scale
+     * @param spacing    gaps and paddings
+     * @param shape      corner radii and line weights
+     * @param page       page geometry
+     * @param syntax     code syntax-highlighting colours
+     */
+    public MarkdownTokens(ColorTokens colors, TypographyTokens typography, SpacingTokens spacing,
+                          ShapeTokens shape, PageTokens page, SyntaxColors syntax) {
+        this(colors, typography, spacing, shape, page, syntax, AlertColors.defaultPalette());
+    }
+
+    /**
      * Returns a copy with a different colour palette.
      *
      * @param newColors the replacement palette
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withColors(ColorTokens newColors) {
-        return new MarkdownTokens(newColors, typography, spacing, shape, page, syntax);
+        return new MarkdownTokens(newColors, typography, spacing, shape, page, syntax, alertColors);
     }
 
     /**
@@ -65,7 +83,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withTypography(TypographyTokens newTypography) {
-        return new MarkdownTokens(colors, newTypography, spacing, shape, page, syntax);
+        return new MarkdownTokens(colors, newTypography, spacing, shape, page, syntax, alertColors);
     }
 
     /**
@@ -75,7 +93,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withSpacing(SpacingTokens newSpacing) {
-        return new MarkdownTokens(colors, typography, newSpacing, shape, page, syntax);
+        return new MarkdownTokens(colors, typography, newSpacing, shape, page, syntax, alertColors);
     }
 
     /**
@@ -85,7 +103,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withPage(PageTokens newPage) {
-        return new MarkdownTokens(colors, typography, spacing, shape, newPage, syntax);
+        return new MarkdownTokens(colors, typography, spacing, shape, newPage, syntax, alertColors);
     }
 
     /**
@@ -95,6 +113,16 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withSyntax(SyntaxColors newSyntax) {
-        return new MarkdownTokens(colors, typography, spacing, shape, page, newSyntax);
+        return new MarkdownTokens(colors, typography, spacing, shape, page, newSyntax, alertColors);
+    }
+
+    /**
+     * Returns a copy with a different alert / callout accent palette.
+     *
+     * @param newAlertColors the replacement alert / callout palette
+     * @return a new {@code MarkdownTokens}
+     */
+    public MarkdownTokens withAlertColors(AlertColors newAlertColors) {
+        return new MarkdownTokens(colors, typography, spacing, shape, page, syntax, newAlertColors);
     }
 }
