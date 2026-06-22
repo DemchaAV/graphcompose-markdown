@@ -143,7 +143,7 @@ cat notes.md | java -jar cli/target/graph-compose-markdown-cli.jar - -o notes.pd
 | Option | Meaning |
 |---|---|
 | `INPUT` | Markdown file, or `-` for stdin |
-| `-o, --output FILE` | Output PDF (default: input name with `.pdf`, or `out.pdf` for stdin) |
+| `-o, --output FILE` | Output PDF, or `-` to write the PDF to stdout (default: input name with `.pdf`, or `out.pdf` for stdin) |
 | `-t, --theme NAME` | `light` (default), `dark`, `github-light`, `github-dark`, `academic`, `minimal`, `business` |
 | `-i, --images DIR` | Base dir for relative image paths (default: the input file's dir) |
 | `-e, --emoji DIR` | Dir of `<shortcode>.png` files to render `:shortcode:` inline |
