@@ -237,7 +237,11 @@ public final class InlineRenderer {
                     .decoration(decoration)
                     .build();
             DocumentLinkOptions options = linkOptionsOrNull(decor.linkUrl());
-            if (options != null) {
+            if (!code && EmojiShapes.contains(text)) {
+                // A geometric emoji inside link text must still become a shape (not a missing
+                // glyph); the surrounding words keep the link annotation.
+                EmojiShapes.append(rich, text, linkStyle, size, options);
+            } else if (options != null) {
                 rich.with(text, linkStyle, options);
             } else {
                 // Relative / anchor / schemeless href: the engine only annotates absolute-URI
