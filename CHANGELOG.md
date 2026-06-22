@@ -34,6 +34,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Fixed
+- **Inline images now render instead of showing only their alt text.** An image sitting amid
+  other inline content (`![alt](src)` — a badge or logo in a sentence) was dropped to its alt
+  text because the inline renderer never received the theme's `ImageResolver`. It now resolves
+  the source and draws the image inline at line height with its aspect ratio preserved (and
+  carries any surrounding link), falling back to alt text only when the source cannot be
+  resolved. A standalone image already rendered as a block figure; this closes the inline case.
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
