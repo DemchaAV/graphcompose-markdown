@@ -6,6 +6,9 @@ import java.util.Objects;
 /**
  * A hyperlink wrapping the inline content that forms its visible label.
  *
+ * <p>The {@code title} is captured for programmatic use but is not currently rendered
+ * (PDF has no native link-tooltip concept).</p>
+ *
  * @param url      the link destination
  * @param title    the optional link title (tooltip); may be {@code null}
  * @param children the inline content forming the visible link text
