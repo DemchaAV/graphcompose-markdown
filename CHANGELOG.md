@@ -30,6 +30,19 @@ and the project follows [Semantic Versioning](https://semver.org/).
   the alert / callout renderers read from it. The default palette is the previous colours
   verbatim, so existing themes render identically; a theme can now supply accents tuned for its
   own surface.
+- **Per-token `withX` copy methods on the leaf token records.** `ColorTokens` and
+  `TypographyTokens` previously exposed only `withCodeBackground`/`withAccent` and `withCodeFamily`,
+  so overriding any other single token meant rebuilding the whole record by hand. Added the full
+  set — every `ColorTokens` colour (`withText`, `withMuted`, `withHeading`, `withLink`, `withCode`,
+  `withTableRowBackground`, `withQuoteBar`, `withQuoteText`, `withRule`, `withSurface` — the last
+  accepts `null` for no page fill) and every `TypographyTokens` field — so the documented "override
+  one token without copy-paste" workflow holds.
+- **Link underlining is now a token — `ShapeTokens.underlineLinks` (default `true`).** It was
+  hardcoded, so a theme could not choose coloured-but-not-underlined links without replacing the
+  style layer (e.g. `MinimalTheme`, which colours links the same as body text, relied on the
+  hardcoded underline). `MarkdownStyles` now reads it from the theme's `ShapeTokens`; the two-arg
+  `ShapeTokens(cornerRadius, ruleThickness)` constructor still defaults it to `true`, so existing
+  themes are unchanged.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
@@ -46,6 +59,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
   now throws `IllegalStateException` naming the type. The built-in renderers cover every node type,
   so this only affects a deliberately partial theme — failing loudly upholds the no-silent-content-
   loss guarantee at the dispatch layer too.
+- **Loose lists now render with wider spacing than tight lists.** CommonMark distinguishes a loose
+  list (items separated by blank lines) from a tight one, but both used to render identically. The
+  mapper now carries a `loose` flag on `ListNode` (read from Flexmark's `ListBlock.isLoose()`), and
+  the list renderer spaces a loose list's items with the block (paragraph) spacing instead of the
+  compact item spacing. `ListNode` keeps a three-arg constructor (tight) for source compatibility.
 
 ### Fixed
 - **`examples/` builds on a clean checkout again.** The detached `examples/` module still
@@ -53,6 +71,31 @@ and the project follows [Semantic Versioning](https://semver.org/).
   on a fresh clone or CI runner failed with an unresolved-dependency error. Bumped it to
   `0.2.0-SNAPSHOT`, tracked through a single `gcmd.version` property (mirroring `cli/`) so the
   detached pom cannot drift behind the next snapshot.
+- **Defined reference links and images now render as links/images.** A `[text][ref]` link or
+  `![alt][ref]` image with a matching `[ref]: url` definition was emitted as literal bracketed
+  text, and the `[ref]: url` definition line itself leaked into the PDF as muted monospace.
+  Flexmark keeps both as `LinkRef`/`ImageRef` nodes (only *inline* links become `Link` nodes), so
+  the mapper now resolves the definition to a real `LinkRun` / `ImageRun` — falling back to literal
+  source only when the reference is genuinely undefined — and drops the definition line.
+- **The CLI no longer dumps a stack trace on errors.** Failures outside the narrow render block —
+  an unwritable output directory, a missing bundled font, or a non-UTF-8 input file — leaked a raw
+  Java stack trace. The CLI now installs a picocli execution-exception handler that prints a clean
+  `error: <message>` with a non-zero exit, and a non-UTF-8 input file (a Windows ANSI / UTF-16 /
+  BOM file) is reported as `error: cannot read … as UTF-8` (exit 2) instead of a
+  `MalformedInputException` trace.
+- **CLI: `-o -` writes the PDF to stdout** (the status line stays on stderr), so the renderer can
+  be piped — `cat notes.md | gcmd - -o - > notes.pdf`. Previously `-o -` created a file literally
+  named `-`. Also corrected the `--mono-jetbrains` help text, which wrongly implied an extra
+  dependency is needed (the font is bundled in the CLI fat-jar).
+- **Inline images now render instead of showing only their alt text.** An image sitting amid other
+  inline content (`![alt](src)` — a badge or logo in a sentence) was dropped to its alt text
+  because the inline renderer never received the theme's `ImageResolver`. It now resolves the
+  source and draws the image inline at line height with its aspect ratio preserved (and carries any
+  surrounding link), falling back to alt text only when the source cannot be resolved.
+- **Geometric emoji inside link text render as shapes again.** A literal geometric emoji typed
+  inside a link (e.g. `[🔴 Critical](url)`) hit the inline renderer's link branch, which returned
+  before the geometric-emoji shape mapping — so it came out as a missing glyph. The link branch now
+  maps the emoji to its inline shape (with the surrounding words kept as a clickable link).
 
 ### Build
 - **CI now builds the detached `cli/` and `examples/` modules.** They sit outside the reactor,
@@ -60,11 +103,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
   an example could ship CI-green. CI now installs the library and runs `cli` `package` +
   `examples` `test-compile` on the baseline JDK.
 
-### Fixed
-- **Geometric emoji inside link text render as shapes again.** A literal geometric emoji typed
-  inside a link (e.g. `[🔴 Critical](url)`) hit the inline renderer's link branch, which returned
-  before the geometric-emoji shape mapping — so it came out as a missing glyph. The link branch now
-  maps the emoji to its inline shape (with the surrounding words kept as a clickable link).
+### Security
+- **Opt-in image-resolver sandbox.** `DefaultImageResolver` resolves a file source as-is by
+  default, so for untrusted Markdown an absolute path (`![x](/etc/passwd)`) or a `../` escape could
+  read an arbitrary local file into the PDF. New `DefaultImageResolver.sandboxed(baseDir)` (and a
+  `new DefaultImageResolver(baseDir, true)` constructor) confine filesystem resolution to `baseDir`,
+  rejecting absolute paths and `../` traversals; classpath resources are unaffected. The default
+  behaviour is unchanged — sandboxing is the explicit choice for untrusted input.
 
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
@@ -78,6 +123,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   home in `theming.md` (`ColorTokens.surface`, not `PageTokens`); the "bundled Twemoji PNGs"
   wording (the PNGs are user-supplied — the library bundles none); and the README status line and
   install-snippet version (`0.2.0`).
+- Corrected the `LineBreakRun` Javadoc (a hard break is two trailing spaces or `<br>` — a trailing
+  backslash is not recognised by the parser and degrades to a soft break), and noted on `ImageNode`
+  / `ImageRun` / `LinkRun` that the `title` is captured for programmatic use but not currently
+  rendered. Added bug-report and feature-request issue templates under `.github/ISSUE_TEMPLATE/`.
+- `MarkdownComposer.create` now documents its `@throws NullPointerException` for a null theme
+  (matching the Builder), and `custom-renderers.md` states plainly that a `:::` block
+  (`CustomBlockNode`) is the only seam for a third-party block type — the sealed model does not
+  allow new `MarkdownNode` subtypes.
 
 ### Tests
 - `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
@@ -92,6 +145,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   for the Flexmark / semantic `render` overloads in `MarkdownComposerTest`; and
   `TableAlignmentRenderTest`, which reads PDF glyph positions to prove a right-aligned table cell
   renders further right than a left-aligned one.
+- `MarkdownCliTest` drives the CLI in-process through its real wiring — the `0`/`2` exit-code
+  contract (happy render, missing input, unknown theme, `--version`, `-o -` stdout) plus the
+  non-UTF-8 and unwritable-output error paths, asserting each yields a clean `error:` message with
+  no leaked stack frame. The `cli/` module had no tests before; it now pins its own JUnit / AssertJ
+  / Surefire so `-f cli/pom.xml package` runs them.
+- `TableAndListEdgeCasesTest` renders a ragged GFM table (a body row with fewer cells than the
+  header), a table with empty cells, and a 3-level nested list, asserting each renders and keeps
+  every cell / item's text (the fixture suite previously had only well-formed tables and 2-level
+  lists).
 
 ## v0.1.0 — 2026-06-21
 
