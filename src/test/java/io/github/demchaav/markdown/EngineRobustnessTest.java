@@ -4,6 +4,7 @@ import io.github.demchaav.markdown.composer.MarkdownComposer;
 import io.github.demchaav.markdown.composer.UnsupportedMarkdownException;
 import io.github.demchaav.markdown.model.CodeBlockNode;
 import io.github.demchaav.markdown.model.CustomBlockNode;
+import io.github.demchaav.markdown.model.ListNode;
 import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.UnsupportedBlockNode;
@@ -157,5 +158,53 @@ class EngineRobustnessTest {
         byte[] pdf = strict.render("# Heading\n\nText with **bold** and `code`.\n\n- a\n- b")
                 .toPdfBytes();
         assertThat(new String(pdf, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
+
+    // --- the strict scan must DESCEND into containers, not only check the top level.
+    //     These nest the unsupported offender so a regression that failed to recurse into a
+    //     list item / table cell / blockquote / custom block would let it slip past strict mode.
+
+    private static MarkdownComposer strict() {
+        return MarkdownComposer.builder().theme(DefaultMarkdownTheme.light()).strictMode(true).build();
+    }
+
+    @Test
+    void strictModeRejectsUnsupportedInlineNestedInAListItem() {
+        assertThatThrownBy(() -> strict().render("- item with <span>x</span>"))
+                .isInstanceOf(UnsupportedMarkdownException.class)
+                .hasMessageContaining("unsupported inline");
+    }
+
+    @Test
+    void strictModeRejectsUnsupportedInlineNestedInABlockquote() {
+        assertThatThrownBy(() -> strict().render("> quoted <span>x</span> text"))
+                .isInstanceOf(UnsupportedMarkdownException.class)
+                .hasMessageContaining("unsupported inline");
+    }
+
+    @Test
+    void strictModeRejectsUnsupportedInlineNestedInATableCell() {
+        assertThatThrownBy(() -> strict().render("| H1 | H2 |\n|----|----|\n| <span>x</span> | y |"))
+                .isInstanceOf(UnsupportedMarkdownException.class)
+                .hasMessageContaining("unsupported inline");
+    }
+
+    @Test
+    void strictModeRejectsUnsupportedBlockNestedInACustomBlock() {
+        assertThatThrownBy(() -> strict().render(":::note\n<div>raw</div>\n:::"))
+                .isInstanceOf(UnsupportedMarkdownException.class)
+                .hasMessageContaining("unsupported block");
+    }
+
+    @Test
+    void lenientModePreservesUnsupportedInlineNestedInAListItem() {
+        // The mirror of the strict test: in lenient mode the same nested offender must be
+        // preserved (not dropped), proving the model carries it down into the list item.
+        MarkdownDocument doc = model("- item with <span>x</span>");
+
+        ListNode list = (ListNode) doc.blocks().stream()
+                .filter(ListNode.class::isInstance).findFirst().orElseThrow();
+        ParagraphNode itemParagraph = (ParagraphNode) list.items().get(0).content().get(0);
+        assertThat(itemParagraph.content()).anyMatch(UnsupportedInlineRun.class::isInstance);
     }
 }

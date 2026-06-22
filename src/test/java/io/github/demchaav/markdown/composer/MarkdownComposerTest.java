@@ -3,11 +3,13 @@ package io.github.demchaav.markdown.composer;
 import com.vladsch.flexmark.parser.Parser;
 import io.github.demchaav.markdown.extension.BundledFonts;
 import io.github.demchaav.markdown.model.CodeBlockNode;
+import io.github.demchaav.markdown.model.CustomBlockNode;
 import io.github.demchaav.markdown.model.FootnotesNode;
 import io.github.demchaav.markdown.model.HeadingNode;
 import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.TableNode;
+import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.model.inline.TextRun;
 import io.github.demchaav.markdown.render.NodeRenderer;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MarkdownComposerTest {
 
@@ -197,5 +200,53 @@ class MarkdownComposerTest {
 
         assertThat(customInvoked).isTrue();
         assertThat(header(pdf)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void nullMarkdownIsTreatedAsEmptyForBothBuilderConfigs() throws Exception {
+        // render(String) documents "null is treated as empty"; hold that contract for both the
+        // default (custom blocks on) and the custom-blocks-off path, which take different routes.
+        byte[] withCustomBlocks = MarkdownComposer.builder().theme(DefaultMarkdownTheme.light())
+                .build().render((String) null).toPdfBytes();
+        byte[] withoutCustomBlocks = MarkdownComposer.builder().theme(DefaultMarkdownTheme.light())
+                .customBlocks(false).build().render((String) null).toPdfBytes();
+
+        assertThat(header(withCustomBlocks)).isEqualTo("%PDF-");
+        assertThat(header(withoutCustomBlocks)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void customBlocksOffLeavesTripleColonAsLiteralText() {
+        // With custom blocks disabled, ':::' is not a fence — it stays ordinary paragraph text.
+        MarkdownDocument doc = MarkdownComposer.builder().theme(DefaultMarkdownTheme.light())
+                .customBlocks(false).build()
+                .render(":::callout warning\nBe careful.\n:::").document();
+
+        assertThat(doc.blocks()).noneMatch(CustomBlockNode.class::isInstance);
+        boolean tripleColonSurvivesAsText = doc.blocks().stream()
+                .filter(ParagraphNode.class::isInstance)
+                .map(ParagraphNode.class::cast)
+                .anyMatch(p -> plain(p.content()).contains(":::"));
+        assertThat(tripleColonSurvivesAsText).isTrue();
+    }
+
+    @Test
+    void nonStringRenderOverloadsRejectNull() {
+        MarkdownComposer composer = MarkdownComposer.create(DefaultMarkdownTheme.light());
+        assertThatThrownBy(() -> composer.render((com.vladsch.flexmark.util.ast.Document) null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> composer.render((MarkdownDocument) null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    /** Concatenates the literal text of top-level inline runs (enough for these assertions). */
+    private static String plain(List<InlineNode> runs) {
+        StringBuilder sb = new StringBuilder();
+        for (InlineNode run : runs) {
+            if (run instanceof TextRun text) {
+                sb.append(text.text());
+            }
+        }
+        return sb.toString();
     }
 }
