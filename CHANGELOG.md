@@ -34,6 +34,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Fixed
+- **Defined reference links and images now render as links/images.** A `[text][ref]` link or
+  `![alt][ref]` image with a matching `[ref]: url` definition was emitted as literal bracketed
+  text, and the `[ref]: url` definition line itself leaked into the PDF as muted monospace.
+  Flexmark keeps both as `LinkRef`/`ImageRef` nodes (only *inline* links become `Link` nodes),
+  so the mapper now resolves the definition to a real `LinkRun` / `ImageRun` — falling back to
+  literal source only when the reference is genuinely undefined — and drops the definition line
+  from the output.
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.

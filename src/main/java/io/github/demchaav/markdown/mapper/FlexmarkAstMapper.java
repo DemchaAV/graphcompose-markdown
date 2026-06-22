@@ -299,6 +299,9 @@ public final class FlexmarkAstMapper {
         if (node instanceof FootnoteBlock) {
             return null; // definitions are collected and rendered as a Notes section at the end
         }
+        if (node instanceof Reference) {
+            return null; // a `[ref]: url` link-reference definition is invisible output, not content
+        }
         // Unmodelled block (raw HTML block, HTML comment, …): preserve the source text so
         // it is surfaced rather than silently lost (strict mode rejects it; see the composer).
         String raw = node.getChars().toString();
@@ -425,11 +428,27 @@ public final class FlexmarkAstMapper {
         if (node instanceof Emoji emoji) {
             return new EmojiRun(emoji.getText().toString());
         }
-        if (node instanceof LinkRef || node instanceof ImageRef) {
-            // An undefined reference link/image (e.g. [TODO], [text][missing]) renders as its
-            // literal source in CommonMark — brackets and all. Surface it as plain text, not
+        if (node instanceof LinkRef linkRef) {
+            // A DEFINED reference link ([text][ref] / [ref][] / [ref] with a matching
+            // `[ref]: url` definition) stays a LinkRef in the Flexmark AST — only inline
+            // links become Link nodes — so resolve the definition here and emit a real link.
+            Reference def = linkRef.getReferenceNode(linkRef.getDocument());
+            if (def != null) {
+                return new LinkRun(def.getUrl().toString(), titleOrNull(def.getTitle()), mapInlines(linkRef));
+            }
+            // An UNDEFINED reference link (e.g. [TODO], [text][missing]) renders as its literal
+            // source in CommonMark — brackets and all. Surface it as plain text, not
             // "unsupported" content, so strict mode does not reject ordinary bracketed text.
-            return new TextRun(node.getChars().toString());
+            return new TextRun(linkRef.getChars().toString());
+        }
+        if (node instanceof ImageRef imageRef) {
+            // Same as LinkRef: a defined reference image (![alt][ref]) is left as an ImageRef;
+            // resolve the definition to a real inline image, else fall back to literal source.
+            Reference def = imageRef.getReferenceNode(imageRef.getDocument());
+            if (def != null) {
+                return new ImageRun(def.getUrl().toString(), imageRef.getText().toString(), titleOrNull(def.getTitle()));
+            }
+            return new TextRun(imageRef.getChars().toString());
         }
         if (node instanceof HtmlEntity entity) {
             return new TextRun(decodeEntity(entity.getChars().toString()));

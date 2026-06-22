@@ -12,6 +12,7 @@ import io.github.demchaav.markdown.model.ParagraphNode;
 import io.github.demchaav.markdown.model.QuoteNode;
 import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.model.ThematicBreakNode;
+import io.github.demchaav.markdown.model.UnsupportedBlockNode;
 import io.github.demchaav.markdown.model.inline.CodeRun;
 import io.github.demchaav.markdown.model.inline.EmphasisRun;
 import io.github.demchaav.markdown.model.inline.FootnoteRefRun;
@@ -195,6 +196,57 @@ class FlexmarkAstMapperTest {
         assertThat(notes.definitions().get(0).number()).isEqualTo(1);
         ParagraphNode definition = (ParagraphNode) notes.definitions().get(0).content().get(0);
         assertThat(plain(definition.content())).isEqualTo("The footnote definition.");
+    }
+
+    @Test
+    void resolvesDefinedReferenceLinkToARealLink() {
+        MarkdownDocument doc = parse("""
+                See [the engine][ref] here.
+
+                [ref]: https://example.com "Title"
+                """);
+
+        // The `[ref]: …` definition line is invisible output, not content.
+        assertThat(doc.blocks()).hasSize(1);
+        assertThat(doc.blocks()).noneSatisfy(n -> assertThat(n).isInstanceOf(UnsupportedBlockNode.class));
+
+        ParagraphNode p = (ParagraphNode) doc.blocks().get(0);
+        LinkRun link = (LinkRun) p.content().stream()
+                .filter(LinkRun.class::isInstance).findFirst().orElseThrow();
+        assertThat(link.url()).isEqualTo("https://example.com");
+        assertThat(link.title()).isEqualTo("Title");
+        assertThat(plain(link.children())).isEqualTo("the engine");
+    }
+
+    @Test
+    void resolvesDefinedReferenceImageToAnInlineImage() {
+        MarkdownDocument doc = parse("""
+                text ![the logo][img] more
+
+                [img]: https://example.com/logo.png "Logo"
+                """);
+
+        assertThat(doc.blocks()).hasSize(1);
+        assertThat(doc.blocks()).noneSatisfy(n -> assertThat(n).isInstanceOf(UnsupportedBlockNode.class));
+
+        ParagraphNode p = (ParagraphNode) doc.blocks().get(0);
+        ImageRun image = (ImageRun) p.content().stream()
+                .filter(ImageRun.class::isInstance).findFirst().orElseThrow();
+        assertThat(image.source()).isEqualTo("https://example.com/logo.png");
+        assertThat(image.alt()).isEqualTo("the logo");
+        assertThat(image.title()).isEqualTo("Logo");
+    }
+
+    @Test
+    void leavesUndefinedReferenceLinkAsLiteralText() {
+        // No matching definition: CommonMark renders the source verbatim, brackets and all,
+        // and it must stay plain text (not an UnsupportedBlockNode) so strict mode accepts it.
+        MarkdownDocument doc = parse("A [TODO] and a [broken][missing] ref.");
+
+        assertThat(doc.blocks()).hasSize(1);
+        ParagraphNode p = (ParagraphNode) doc.blocks().get(0);
+        assertThat(p.content()).noneSatisfy(n -> assertThat(n).isInstanceOf(LinkRun.class));
+        assertThat(plain(p.content())).isEqualTo("A [TODO] and a [broken][missing] ref.");
     }
 
     /** Flattens the literal text of a list of inline runs, descending into decorations. */
