@@ -42,6 +42,18 @@ jobs:
       - name: Build and run tests
         run: ./mvnw -B -ntp clean verify
 
+      - name: Build the detached CLI and examples modules
+        # cli/ and examples/ are intentionally outside the reactor (kept out of the
+        # published artifact), so `verify` above never touches them. Build them here
+        # on the baseline JDK so an API change in the library that breaks the CLI
+        # fat-jar or an example cannot ship CI-green. install -DskipTests publishes
+        # the just-verified library to the local repo the detached poms resolve from.
+        if: matrix.java == '17'
+        run: |
+          ./mvnw -B -ntp install -DskipTests
+          ./mvnw -B -ntp -f cli/pom.xml package
+          ./mvnw -B -ntp -f examples/pom.xml test-compile
+
       - name: Generate Javadoc
         # Run only on the baseline JDK — one pass is enough to catch broken
         # @link references; Javadoc output is identical across JVMs.

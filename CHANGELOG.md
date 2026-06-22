@@ -34,6 +34,19 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Fixed
+- **`examples/` builds on a clean checkout again.** The detached `examples/` module still
+  pinned `graph-compose-markdown:0.1.0-SNAPSHOT` after the `0.2.0` bump, so running an example
+  on a fresh clone or CI runner failed with an unresolved-dependency error. Bumped it to
+  `0.2.0-SNAPSHOT`, tracked through a single `gcmd.version` property (mirroring `cli/`) so the
+  detached pom cannot drift behind the next snapshot.
+
+### Build
+- **CI now builds the detached `cli/` and `examples/` modules.** They sit outside the reactor,
+  so the library's `verify` never compiled them — an API change that broke the CLI fat-jar or
+  an example could ship CI-green. CI now installs the library and runs `cli` `package` +
+  `examples` `test-compile` on the baseline JDK.
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
