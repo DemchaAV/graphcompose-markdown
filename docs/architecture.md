@@ -5,7 +5,8 @@ next a stable data structure, so any stage can be swapped or driven directly.
 
 ```text
 MarkdownComposer.render(String)
-   │  Flexmark parser  (+ GFM tables, task lists, strikethrough, footnotes)
+   │  Flexmark parser  (+ GFM tables, task lists, strikethrough, footnotes;
+   │                     emoji, autolink, YAML front matter)
    ▼
 Flexmark AST                       com.vladsch.flexmark.util.ast.Document
    │  FlexmarkAstMapper            ◀── the boundary: nothing below imports Flexmark
@@ -22,8 +23,11 @@ Layout + pagination → PDF
 ## 1. Parsing (Flexmark)
 
 Markdown text is parsed by [Flexmark](https://github.com/vsch/flexmark-java) with the
-GFM extensions enabled (tables, task lists, strikethrough, footnotes). Flexmark is an
-implementation detail — it never leaks past the next stage.
+GFM extensions enabled (tables, task lists, strikethrough, footnotes) plus emoji
+shortcodes, bare-URL autolinking, and YAML front matter. Flexmark is an implementation
+detail — it never leaks past the next stage (with one opt-in exception: the
+`render(com.vladsch.flexmark.util.ast.Document)` overload, for callers who already hold a
+parsed Flexmark tree).
 
 You can skip this stage: `MarkdownComposer.render(Document)` accepts a Flexmark
 `Document` you parsed yourself (with whatever parser options and extensions you want).
@@ -37,12 +41,16 @@ keeps the rest of the library free of Flexmark types.
 ```java
 public sealed interface MarkdownNode
         permits HeadingNode, ParagraphNode, ListNode, CodeBlockNode, QuoteNode,
-                ThematicBreakNode, ImageNode, TableNode, CustomBlockNode, FootnotesNode {
+                ThematicBreakNode, ImageNode, TableNode, CustomBlockNode, AlertNode,
+                FrontMatterNode, FootnotesNode, UnsupportedBlockNode {
 }
 ```
 
 Inline content is its own sealed hierarchy (`InlineNode`: text, code, strong,
-emphasis, strikethrough, link, image, line break, footnote reference).
+emphasis, strikethrough, link, image, line break, footnote reference, emoji, and an
+unsupported-inline run). The lists above are the source of truth — see
+[`MarkdownNode`](../src/main/java/io/github/demchaav/markdown/model/MarkdownNode.java)
+and [`InlineNode`](../src/main/java/io/github/demchaav/markdown/model/inline/InlineNode.java).
 
 Because the model is sealed and parser-independent:
 
@@ -61,7 +69,7 @@ GraphCompose document. It has three layers (see [theming.md](theming.md)):
 | Layer | Type | Responsibility |
 |-------|------|----------------|
 | Design tokens | `MarkdownTokens` | cosmetic values — colors, fonts, sizes, spacing, shapes, page geometry, syntax colors |
-| Component styles | `MarkdownStyles` | per-element styles derived from tokens (`HeadingStyle`, `CodeBlockStyle`, …) |
+| Component styles | `MarkdownStyles` | per-element styles derived from tokens (`CodeBlockStyle`, `QuoteStyle`, `CalloutStyle`, …; headings use an `InlineStyle` via `headingInline(level)`) |
 | Node renderers | `NodeRenderer` in a `RendererRegistry` | how each node becomes GraphCompose builders |
 
 Rendering walks the `MarkdownDocument` block by block. For each node, the

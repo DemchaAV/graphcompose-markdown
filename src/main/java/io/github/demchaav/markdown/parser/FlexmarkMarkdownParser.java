@@ -17,15 +17,16 @@ import java.util.List;
  * Parses Markdown text into a Flexmark AST.
  *
  * <p>This is the only place in the library that touches Flexmark. The configured
- * {@link Parser} enables CommonMark plus the GFM strikethrough extension. A
- * single parser instance is reused across calls; Flexmark's {@code parse} is
- * safe to call concurrently once the parser is built.</p>
+ * {@link Parser} enables CommonMark plus the GFM extensions for tables, task lists,
+ * strikethrough and footnotes, and the extensions for emoji shortcodes, autolinking
+ * and YAML front matter. A single parser instance is reused across calls; Flexmark's
+ * {@code parse} is safe to call concurrently once the parser is built.</p>
  */
 public final class FlexmarkMarkdownParser {
 
     private final Parser parser;
 
-    /** Creates a parser configured for CommonMark plus GFM strikethrough. */
+    /** Creates a parser for CommonMark plus the GFM, emoji, autolink and front-matter extensions. */
     public FlexmarkMarkdownParser() {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, List.of(

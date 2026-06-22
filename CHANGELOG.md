@@ -37,6 +37,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
+- Corrected several doc-vs-code inaccuracies: the `architecture.md` `MarkdownNode` permits list
+  and inline enumeration (added `AlertNode` / `FrontMatterNode` / `UnsupportedBlockNode` and the
+  emoji / unsupported inline runs); the parser-extension lists in the README and `architecture.md`
+  and the `FlexmarkMarkdownParser` Javadoc (which named only GFM strikethrough — they now list
+  emoji, autolink and YAML front matter too); the phantom `MarkdownStyles.HeadingStyle` reference
+  in three docs (headings use an `InlineStyle` via `headingInline(level)`); the page background's
+  home in `theming.md` (`ColorTokens.surface`, not `PageTokens`); the "bundled Twemoji PNGs"
+  wording (the PNGs are user-supplied — the library bundles none); and the README status line and
+  install-snippet version (`0.2.0`).
 
 ### Tests
 - `AlertIconsTest` asserts every alert type ships a parseable vector icon (resource
@@ -82,8 +91,9 @@ are grouped by area.
   renders as link-styled text rather than aborting the whole render — the engine only
   annotates absolute-URI links, and a schemeless URI was throwing.
 - **Emoji shortcodes.** `:rocket:` parses to an `EmojiRun`; a pluggable `EmojiResolver`
-  (default: none) renders it as an **inline image** — e.g. `ClasspathEmojiResolver` with
-  bundled Twemoji PNGs — or it falls back to readable `:shortcode:` text. (PDF fonts have
+  (default: none) renders it as an **inline image** — e.g. `ClasspathEmojiResolver` pointed
+  at `<shortcode>.png` files you supply on the classpath (such as Twemoji) — or it falls back
+  to readable `:shortcode:` text. (PDF fonts have
   no emoji glyphs, so text is the honest default; the SPI lets an inline-SVG or font
   strategy drop in later without other changes.)
 - **GitHub-style alerts.** A blockquote whose first line is `[!NOTE]` / `[!TIP]` /

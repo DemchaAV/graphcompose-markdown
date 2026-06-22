@@ -32,7 +32,7 @@ Markdown ──Flexmark──▶ Flexmark AST ──mapper──▶ Semantic mod
                                         types downstream)
 ```
 
-> Status: first release (`0.1.0`). The API may still change before `1.0.0`.
+> Status: `0.1.0` released; `0.2.0` in development. The API may still change before `1.0.0`.
 
 ## Showcase
 
@@ -83,7 +83,7 @@ Maven (once released):
 <dependency>
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -180,8 +180,10 @@ shortcodes** (`:rocket:`), **YAML front matter** (a `---` … `---` title block)
 `:::` custom blocks (e.g. callouts).
 
 Emoji shortcodes render as **inline images** when an `EmojiResolver` is configured
-(e.g. `ClasspathEmojiResolver` with bundled Twemoji PNGs); otherwise they fall back to
-readable `:shortcode:` text, since PDF fonts carry no emoji glyphs. **Geometric emoji**
+(e.g. `ClasspathEmojiResolver` pointed at a classpath folder of `<shortcode>.png` files
+you supply, such as Twemoji renamed by shortcode — the library bundles no emoji images);
+otherwise they fall back to readable `:shortcode:` text, since PDF fonts carry no emoji
+glyphs. **Geometric emoji**
 typed literally — coloured circles `🔴🟢🟡`, squares `🟥🟩`, `🔺`, diamonds `🔶🔷` and
 stars `⭐` — render as **native vector shapes** in their own colour (no font, no image),
 instead of a missing-glyph `?`.
@@ -197,7 +199,8 @@ rejects such a document instead, for pipelines that must fail loudly.
 
 ```text
 MarkdownComposer.render(String)
-   │  Flexmark parser (+ GFM tables, task lists, strikethrough, footnotes)
+   │  Flexmark parser (+ GFM tables, task lists, strikethrough, footnotes;
+   │                    emoji, autolink, YAML front matter)
    ▼
 Flexmark AST
    │  FlexmarkAstMapper  — the boundary: nothing downstream imports Flexmark
@@ -223,8 +226,9 @@ need and reuse everything else:
 
 1. **Design tokens** (`MarkdownTokens`) — cosmetic values: colors, fonts, sizes,
    spacing, borders, corner radii, page geometry, syntax-highlight colors.
-2. **Component styles** (`MarkdownStyles`) — per-element styles (`HeadingStyle`,
-   `CodeBlockStyle`, `ListStyle`, `QuoteStyle`, …) derived from tokens.
+2. **Component styles** (`MarkdownStyles`) — per-element styles (`CodeBlockStyle`,
+   `ListStyle`, `QuoteStyle`, `CalloutStyle`, …) derived from tokens; headings use an
+   `InlineStyle` via `headingInline(level)`.
 3. **Node renderers** (`NodeRenderer`) — the behaviour that turns each semantic node
    into GraphCompose builders, bound to node types in a `RendererRegistry`.
 
