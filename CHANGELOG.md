@@ -43,6 +43,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   presence + parseability), so a missing or broken icon file fails the build.
 - `EmojiShapesTest` asserts geometric emoji become inline shape runs (and plain text /
   non-geometric emoji are left untouched).
+- Closed audit-flagged coverage gaps: `DefaultImageResolverTest` (null / blank input, the
+  `http`/`https` no-fetch safety contract, and classpath + base-dir file resolution); nested
+  strict-mode tests in `EngineRobustnessTest` proving the unsupported-content scan descends into
+  list items, table cells, blockquotes and `:::` blocks (with a lenient-preservation mirror);
+  `render((String) null)`, `customBlocks(false)` (`:::` stays literal text) and null-arg rejection
+  for the Flexmark / semantic `render` overloads in `MarkdownComposerTest`; and
+  `TableAlignmentRenderTest`, which reads PDF glyph positions to prove a right-aligned table cell
+  renders further right than a left-aligned one.
 
 ## v0.1.0 — 2026-06-21
 
