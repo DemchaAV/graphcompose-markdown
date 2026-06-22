@@ -43,6 +43,10 @@ and the project follows [Semantic Versioning](https://semver.org/).
   presence + parseability), so a missing or broken icon file fails the build.
 - `EmojiShapesTest` asserts geometric emoji become inline shape runs (and plain text /
   non-geometric emoji are left untouched).
+- `TableAndListEdgeCasesTest` renders a ragged GFM table (a body row with fewer cells than the
+  header), a table with empty cells, and a 3-level nested list, asserting each renders and keeps
+  every cell / item's text (the fixture suite previously had only well-formed tables and 2-level
+  lists).
 
 ## v0.1.0 — 2026-06-21
 
