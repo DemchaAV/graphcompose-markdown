@@ -33,6 +33,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are true vector — no font glyph and no raster image — and
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
+- **Loose lists now render with wider spacing than tight lists.** CommonMark distinguishes a loose
+  list (items separated by blank lines) from a tight one, but both used to render identically. The
+  mapper now carries a `loose` flag on `ListNode` (read from Flexmark's `ListBlock.isLoose()`), and
+  the list renderer spaces a loose list's items with the block (paragraph) spacing instead of the
+  compact item spacing. `ListNode` keeps a three-arg constructor (tight) for source compatibility.
 
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
