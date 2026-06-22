@@ -41,6 +41,7 @@ import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.theme.RendererRegistry;
 import io.github.demchaav.markdown.theme.style.InlineStyle;
 import io.github.demchaav.markdown.theme.style.MarkdownStyles;
+import io.github.demchaav.markdown.theme.tokens.AlertColors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -526,7 +527,7 @@ public final class BuiltinRenderers {
         @Override
         public void render(AlertNode node, SectionBuilder host, RenderContext ctx) {
             MarkdownStyles.CalloutStyle style = ctx.styles().callout();
-            DocumentColor accent = accentFor(node.type());
+            DocumentColor accent = accentFor(node.type(), ctx.tokens().alertColors());
             DocumentColor background = accent.withOpacity(0.12);
             DocumentTextStyle titleStyle = DocumentTextStyle.builder()
                     .fontName(ctx.tokens().typography().bodyFamily().resolve(true, false))
@@ -550,19 +551,19 @@ public final class BuiltinRenderers {
             });
         }
 
-        private static DocumentColor accentFor(AlertType type) {
+        private static DocumentColor accentFor(AlertType type, AlertColors colors) {
             switch (type) {
                 case TIP:
-                    return DocumentColor.rgb(26, 127, 55);    // green
+                    return colors.tip();
                 case IMPORTANT:
-                    return DocumentColor.rgb(130, 80, 223);   // purple
+                    return colors.important();
                 case WARNING:
-                    return DocumentColor.rgb(154, 103, 0);    // amber
+                    return colors.warning();
                 case CAUTION:
-                    return DocumentColor.rgb(207, 34, 46);    // red
+                    return colors.caution();
                 case NOTE:
                 default:
-                    return DocumentColor.rgb(9, 105, 218);    // blue
+                    return colors.note();
             }
         }
     }
@@ -572,7 +573,7 @@ public final class BuiltinRenderers {
         @Override
         public void render(CustomBlockNode node, SectionBuilder host, RenderContext ctx) {
             MarkdownStyles.CalloutStyle style = ctx.styles().callout();
-            DocumentColor accent = accentFor(node.variant(), style.accent());
+            DocumentColor accent = accentFor(node.variant(), ctx.tokens().alertColors(), style.accent());
             DocumentColor background = accent.withOpacity(0.12);
             host.addSection(panel -> {
                 // Round only the right corners — the left edge meets the accent bar.
@@ -583,23 +584,23 @@ public final class BuiltinRenderers {
             });
         }
 
-        private static DocumentColor accentFor(String variant, DocumentColor fallback) {
+        private static DocumentColor accentFor(String variant, AlertColors colors, DocumentColor fallback) {
             if (variant == null) {
                 return fallback;
             }
             switch (variant.toLowerCase()) {
                 case "warning":
                 case "caution":
-                    return DocumentColor.rgb(217, 119, 6);
+                    return colors.calloutWarning();
                 case "info":
                 case "note":
-                    return DocumentColor.rgb(37, 99, 235);
+                    return colors.calloutInfo();
                 case "error":
                 case "danger":
-                    return DocumentColor.rgb(220, 38, 38);
+                    return colors.calloutError();
                 case "success":
                 case "tip":
-                    return DocumentColor.rgb(22, 163, 74);
+                    return colors.calloutSuccess();
                 default:
                     return fallback;
             }

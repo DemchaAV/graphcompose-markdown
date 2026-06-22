@@ -22,6 +22,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   reactor, it never affects the published library artifact. Ships `gcmd` / `gcmd.cmd`
   launcher wrappers that resolve the jar relative to themselves (drop the `java -jar …`
   boilerplate). See the README "Command-line" section.
+- **Themeable alert / callout accents — the `AlertColors` token group.** The per-variant
+  accent colours for GitHub-style alerts (NOTE / TIP / IMPORTANT / WARNING / CAUTION) and for
+  `:::` callouts (info / warning / error / success) were hard-coded inside the renderers, so a
+  theme could not retune them — a dark theme got the same mid-saturation light-mode accents. They
+  are now a `MarkdownTokens.alertColors()` group (with a `withAlertColors(...)` copy method), and
+  the alert / callout renderers read from it. The default palette is the previous colours
+  verbatim, so existing themes render identically; a theme can now supply accents tuned for its
+  own surface.
 
 ### Changed
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
