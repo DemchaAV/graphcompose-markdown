@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.render;
 
 import com.demcha.compose.document.dsl.RichText;
+import com.demcha.compose.document.node.DocumentLinkOptions;
 import com.demcha.compose.document.node.InlineImageAlignment;
 import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentStroke;
@@ -55,25 +56,45 @@ final class EmojiShapes {
      * {@code textStyle}.
      */
     static void append(RichText rich, String text, DocumentTextStyle textStyle, double emSize) {
+        append(rich, text, textStyle, emSize, null);
+    }
+
+    /**
+     * As {@link #append(RichText, String, DocumentTextStyle, double)}, but the plain-text runs
+     * between shapes carry {@code link} — so a geometric emoji typed inside link text renders as
+     * a shape while the surrounding words stay a clickable link. The shapes themselves are not
+     * link targets (the engine's inline shapes take no annotation), but they no longer come out
+     * as a missing glyph.
+     */
+    static void append(RichText rich, String text, DocumentTextStyle textStyle, double emSize,
+                       DocumentLinkOptions link) {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < text.length(); ) {
             int cp = text.codePointAt(i);
             int cc = Character.charCount(cp);
             Glyph glyph = GLYPHS.get(cp);
             if (glyph != null) {
-                if (buf.length() > 0) {
-                    rich.style(buf.toString(), textStyle);
-                    buf.setLength(0);
-                }
+                flush(rich, buf, textStyle, link);
                 emit(rich, glyph, emSize);
             } else {
                 buf.appendCodePoint(cp);
             }
             i += cc;
         }
-        if (buf.length() > 0) {
-            rich.style(buf.toString(), textStyle);
+        flush(rich, buf, textStyle, link);
+    }
+
+    /** Emits the buffered plain text (as a link run if {@code link} is set) and clears the buffer. */
+    private static void flush(RichText rich, StringBuilder buf, DocumentTextStyle style, DocumentLinkOptions link) {
+        if (buf.length() == 0) {
+            return;
         }
+        if (link != null) {
+            rich.with(buf.toString(), style, link);
+        } else {
+            rich.style(buf.toString(), style);
+        }
+        buf.setLength(0);
     }
 
     private static void emit(RichText rich, Glyph g, double emSize) {

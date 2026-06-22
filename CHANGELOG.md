@@ -34,6 +34,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
   are painted in the theme's accent, so they recolour automatically with the alert colours.
   If an icon resource is ever unavailable, the title still renders (just without a glyph).
 
+### Fixed
+- **Geometric emoji inside link text render as shapes again.** A literal geometric emoji typed
+  inside a link (e.g. `[🔴 Critical](url)`) hit the inline renderer's link branch, which returned
+  before the geometric-emoji shape mapping — so it came out as a missing glyph. The link branch now
+  maps the emoji to its inline shape (with the surrounding words kept as a clickable link).
+
 ### Documentation
 - Regenerated the committed showcase render (`assets/readme/showcase.*`) so the alert
   callouts show their new icons.
