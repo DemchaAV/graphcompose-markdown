@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Check out repository at tag
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
