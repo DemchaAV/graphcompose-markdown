@@ -187,6 +187,11 @@
             <artifactId>flexmark-ext-yaml-front-matter</artifactId>
             <version>${flexmark.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-typographic</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

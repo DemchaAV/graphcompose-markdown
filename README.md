@@ -161,6 +161,10 @@ MarkdownTheme numbered = MarkdownTheme.builder(t)
         .build();
 ```
 
+Prefer typographic output? `MarkdownComposer.builder().smartPunctuation(true)` turns
+`--` / `---` / `...` and straight quotes into – — … and “curly” quotes (code stays
+verbatim; off by default, matching GitHub).
+
 ## Command-line (CLI)
 
 A standalone `cli/` module renders Markdown to PDF from the shell — no Java code
