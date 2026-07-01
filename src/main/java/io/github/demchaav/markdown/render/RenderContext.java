@@ -181,6 +181,17 @@ public final class RenderContext {
         }
     }
 
+    /**
+     * Whether the planned document contains at least one heading that yields a PDF bookmark
+     * (i.e. a heading with non-empty plain text). Meaningful after {@link #planHeadings};
+     * used to decide whether opening the viewer's outline panel is worthwhile.
+     *
+     * @return {@code true} if at least one bookmarkable heading was planned
+     */
+    public boolean hasBookmarkableHeading() {
+        return state.tocEntries().stream().anyMatch(entry -> !entry.text().isEmpty());
+    }
+
     /** @return the planned slug anchor for a heading, or {@code null} if it was not planned */
     String headingSlug(HeadingNode node) {
         return state.slugFor(node);
