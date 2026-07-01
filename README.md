@@ -226,11 +226,23 @@ autolinking** and clickable **`[text](#heading)` internal links**), ordered & un
 shortcodes** (`:rocket:`), **YAML front matter** (a `---` … `---` title block), and
 `:::` custom blocks (e.g. callouts).
 
-Emoji shortcodes render as **inline images** when an `EmojiResolver` is configured
-(e.g. `ClasspathEmojiResolver` pointed at a classpath folder of `<shortcode>.png` files
-you supply, such as Twemoji renamed by shortcode — the library bundles no emoji images);
-otherwise they fall back to readable `:shortcode:` text, since PDF fonts carry no emoji
-glyphs. **Geometric emoji**
+Emoji shortcodes resolve in priority order: an **inline image** from a configured
+`EmojiResolver` (the override seam — e.g. `ClasspathEmojiResolver` over your own
+`<shortcode>.png` files); else a **crisp colour vector glyph** when the optional
+[`graph-compose-emoji`](https://central.sonatype.com/artifact/io.github.demchaav/graph-compose-emoji)
+artifact is on the classpath (the bundled Noto Emoji SVG set — emoji "just work",
+no images to supply); else readable `:shortcode:` text in the surrounding style,
+since PDF fonts carry no emoji glyphs. Opting in to the vector set is one dependency:
+
+```xml
+<dependency>
+    <groupId>io.github.demchaav</groupId>
+    <artifactId>graph-compose-emoji</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+**Geometric emoji**
 typed literally — coloured circles `🔴🟢🟡`, squares `🟥🟩`, `🔺`, diamonds `🔶🔷` and
 stars `⭐` — render as **native vector shapes** in their own colour (no font, no image),
 instead of a missing-glyph `?`.

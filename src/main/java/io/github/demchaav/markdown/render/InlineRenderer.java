@@ -1,6 +1,7 @@
 package io.github.demchaav.markdown.render;
 
 import com.demcha.compose.document.dsl.RichText;
+import com.demcha.compose.document.emoji.EmojiLibrary;
 import com.demcha.compose.document.image.DocumentImageData;
 import com.demcha.compose.document.node.DocumentLinkOptions;
 import com.demcha.compose.document.node.InlineImageAlignment;
@@ -9,6 +10,7 @@ import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentInsets;
 import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
+import com.demcha.compose.document.svg.SvgIcon;
 import io.github.demchaav.markdown.extension.EmojiResolver;
 import io.github.demchaav.markdown.extension.ImageResolver;
 import io.github.demchaav.markdown.model.inline.CodeRun;
@@ -40,8 +42,10 @@ import java.util.Optional;
  * variant; strikethrough uses the decoration enum, so the two compose freely.
  * Inline code switches to the code font and colour. Links are emitted via
  * {@link RichText#link(String, String)}; formatting inside a link degrades to
- * the link style. Emoji shortcodes resolve to inline images via the theme's
- * {@link EmojiResolver}, or fall back to literal {@code :shortcode:} text. An
+ * the link style. Emoji shortcodes resolve in order: an image from the theme's
+ * {@link EmojiResolver} (the override seam), else a vector colour glyph from the
+ * optional {@code graph-compose-emoji} artifact, else literal {@code :shortcode:}
+ * text in the surrounding style. An
  * inline image ({@code ![alt](src)} amid other text) resolves through the theme's
  * {@link ImageResolver} to an inline image at line height (aspect ratio preserved),
  * falling back to its alt text when the source cannot be resolved.</p>
@@ -191,12 +195,24 @@ public final class InlineRenderer {
         } else if (node instanceof EmojiRun emoji) {
             Optional<byte[]> image = emojiResolver.resolve(emoji.shortcode());
             if (image.isPresent() && image.get().length > 0) {
+                // A theme-configured EmojiResolver stays the override seam: its image wins.
                 double size = base.size();
                 rich.image(DocumentImageData.fromBytes(image.get()), size, size,
                         InlineImageAlignment.CENTER, 0.0, linkOptionsOrNull(decor.linkUrl()));
             } else {
-                // No image (or none resolved) — render the readable shortcode, never a broken glyph.
-                emit(rich, ":" + emoji.shortcode() + ":", base, decor, false);
+                SvgIcon glyph = EmojiLibrary.getDefault().find(emoji.shortcode()).orElse(null);
+                if (glyph != null) {
+                    // Vector colour glyph from the optional graph-compose-emoji artifact —
+                    // crisp at any size, no user-supplied images. Like resolver images, the
+                    // glyph carries only an absolute-URI link; inside a [..](#anchor) link the
+                    // surrounding text keeps the jump but the glyph itself is not annotated.
+                    rich.svgIcon(glyph, base.size(), InlineImageAlignment.CENTER, 0.0,
+                            linkOptionsOrNull(decor.linkUrl()));
+                } else {
+                    // No image, no vector set (or unknown shortcode) — render the readable
+                    // shortcode in the surrounding style, never a broken glyph.
+                    emit(rich, ":" + emoji.shortcode() + ":", base, decor, false);
+                }
             }
         } else if (node instanceof UnsupportedInlineRun unsupported) {
             // Surface unmodelled inline (e.g. raw HTML) literally, rather than dropping it.

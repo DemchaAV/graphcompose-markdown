@@ -13,8 +13,10 @@ import java.nio.file.Path;
  *
  * <p>The bundled {@code /emoji/*.png} are real Twemoji images (CC-BY 4.0), named by
  * shortcode. Add more by dropping {@code <shortcode>.png} files into
- * {@code examples/src/main/resources/emoji/}. A shortcode with no image (e.g.
- * {@code :shrug:}) falls back to its literal text rather than a broken glyph.</p>
+ * {@code examples/src/main/resources/emoji/}. A resolver image always wins; a shortcode
+ * the resolver misses falls through to the vector Noto set ({@code graph-compose-emoji},
+ * on this module's classpath — see {@code VectorEmojiExample}), and an entirely unknown
+ * shortcode stays literal text rather than a broken glyph.</p>
  *
  * <pre>
  *   ../mvnw -f pom.xml exec:java \
@@ -37,8 +39,9 @@ public final class EmojiExample {
                 Ship it :rocket: — tests pass :white_check_mark: and the crowd goes :tada:.
                 This release is on :fire:, give it a :star:.
 
-                Shortcodes with no bundled image, like :shrug:, fall back to their
-                literal text.
+                A shortcode the resolver misses, like :shrug:, falls through to the
+                vector Noto set; an entirely unknown one, like :definitelynotanemoji:,
+                stays literal text.
                 """;
 
         Path out = Path.of("emoji.pdf");

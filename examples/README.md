@@ -33,6 +33,7 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.TocExample` | A `[TOC]` marker → auto-generated, clickable table of contents nested by heading level | `toc.pdf` |
 | `…examples.FooterExample` | A running footer with `Page N of M` page numbers (`FooterTokens.pageNumbers()`) | `footer.pdf` |
 | `…examples.PngExportExample` | Rasterize straight to PNG page images via `toImages(dpi)` — no PDF round-trip | `png-export-p*.png` |
+| `…examples.VectorEmojiExample` | `:shortcode:` emoji as crisp vector glyphs via the optional `graph-compose-emoji` artifact | `vector-emoji.pdf` |
 | `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
 | `…examples.FrontMatterExample` | A YAML `---` front-matter title block | `front-matter.pdf` |
 

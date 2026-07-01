@@ -44,6 +44,14 @@
             <artifactId>graph-compose-fonts</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <!-- The bundled Noto Emoji vector set (VectorEmojiExample). Note: being on the
+             module classpath it affects EVERY example — a shortcode a resolver misses
+             falls through to a vector glyph instead of literal text. -->
+        <dependency>
+            <groupId>io.github.demchaav</groupId>
+            <artifactId>graph-compose-emoji</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
