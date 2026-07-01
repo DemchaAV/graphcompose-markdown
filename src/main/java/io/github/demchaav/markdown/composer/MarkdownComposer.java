@@ -57,7 +57,7 @@ public final class MarkdownComposer {
     private final MarkdownTheme theme;
 
     private MarkdownComposer(Builder builder) {
-        this.parser = new FlexmarkMarkdownParser();
+        this.parser = new FlexmarkMarkdownParser(builder.smartPunctuation);
         this.mapper = new FlexmarkAstMapper();
         this.customBlockParser = new CustomBlockParser(parser, mapper);
         this.customBlocksEnabled = builder.customBlocks;
@@ -209,6 +209,7 @@ public final class MarkdownComposer {
         private boolean customBlocks = true;
         private boolean strict = false;
         private boolean openOutline = true;
+        private boolean smartPunctuation = false;
 
         private Builder() {
         }
@@ -247,6 +248,21 @@ public final class MarkdownComposer {
          */
         public Builder strictMode(boolean enabled) {
             this.strict = enabled;
+            return this;
+        }
+
+        /**
+         * Enables typographic smart punctuation (default off, matching GitHub's rendering):
+         * straight quotes become curly quotes, apostrophes curl ({@code don't} → {@code don’t}),
+         * {@code --} becomes an en-dash, {@code ---} an em-dash, {@code ...} (and spaced
+         * {@code . . .}) an ellipsis, and {@code <<text>>} becomes {@code «text»} guillemets.
+         * Code spans and code blocks always stay verbatim.
+         *
+         * @param enabled whether to apply typographic replacements
+         * @return this builder
+         */
+        public Builder smartPunctuation(boolean enabled) {
+            this.smartPunctuation = enabled;
             return this;
         }
 

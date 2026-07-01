@@ -6,6 +6,8 @@ import com.vladsch.flexmark.ext.footnotes.Footnote;
 import com.vladsch.flexmark.ext.footnotes.FootnoteBlock;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem;
+import com.vladsch.flexmark.ext.typographic.TypographicQuotes;
+import com.vladsch.flexmark.ext.typographic.TypographicSmarts;
 import com.vladsch.flexmark.ext.tables.*;
 import com.vladsch.flexmark.ext.yaml.front.matter.AbstractYamlFrontMatterVisitor;
 import com.vladsch.flexmark.ext.yaml.front.matter.YamlFrontMatterBlock;
@@ -38,7 +40,10 @@ public final class FlexmarkAstMapper {
             Map.entry("amp", "&"), Map.entry("lt", "<"), Map.entry("gt", ">"),
             Map.entry("quot", "\""), Map.entry("apos", "'"), Map.entry("nbsp", " "),
             Map.entry("copy", "©"), Map.entry("reg", "®"), Map.entry("trade", "™"),
-            Map.entry("mdash", "—"), Map.entry("ndash", "–"), Map.entry("hellip", "…"));
+            Map.entry("mdash", "—"), Map.entry("ndash", "–"), Map.entry("hellip", "…"),
+            Map.entry("lsquo", "‘"), Map.entry("rsquo", "’"),
+            Map.entry("ldquo", "“"), Map.entry("rdquo", "”"),
+            Map.entry("laquo", "«"), Map.entry("raquo", "»"));
 
     // Footnote label -> number, assigned by first-reference order, scoped to the current
     // mapping call. Flexmark does not populate footnote ordinals at parse time, and the
@@ -139,6 +144,11 @@ public final class FlexmarkAstMapper {
             return normalized.substring(0, normalized.length() - 1);
         }
         return normalized;
+    }
+
+    /** Decodes a typographic mark carried as an HTML entity; {@code null} (hand-built node) → empty. */
+    private static String decodeTypographic(String entity) {
+        return entity == null ? "" : decodeEntity(entity);
     }
 
     private static String decodeEntity(String entity) {
@@ -387,6 +397,13 @@ public final class FlexmarkAstMapper {
                 // A transparent wrapper Flexmark inserts (e.g. for autolinking) — flatten it,
                 // so the Link/Text nodes inside are mapped rather than swallowed whole.
                 result.addAll(mapInlines(child));
+            } else if (child instanceof TypographicQuotes quotes) {
+                // Smart punctuation (opt-in): curly quote marks around the mapped inner
+                // inlines. Flexmark carries the marks as HTML entity names; reuse the decoder.
+                // Null marks (possible on hand-built nodes fed via render(Document)) emit nothing.
+                result.add(new TextRun(decodeTypographic(quotes.getTypographicOpening())));
+                result.addAll(mapInlines(quotes));
+                result.add(new TextRun(decodeTypographic(quotes.getTypographicClosing())));
             } else {
                 InlineNode mapped = mapInline(child);
                 if (mapped != null) {
@@ -464,6 +481,11 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof HtmlEntity entity) {
             return new TextRun(decodeEntity(entity.getChars().toString()));
+        }
+        if (node instanceof TypographicSmarts smarts) {
+            // Smart punctuation (opt-in): -- / --- / ... as en/em-dash and ellipsis. Flexmark
+            // carries the replacement as an HTML entity name; reuse the decoder.
+            return new TextRun(decodeTypographic(smarts.getTypographicText()));
         }
         if (node instanceof HtmlInline inline) {
             String raw = inline.getChars().toString();

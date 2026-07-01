@@ -20,6 +20,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
   link — a heading's single anchor slot already carries its navigation slug.
 
 ### Changed
+- **The HTML-entity decoder now handles curly-quote and guillemet entities (all modes).** A
+  literal `&rsquo;` / `&ldquo;` / `&laquo;` … in the Markdown source now decodes to its character
+  (`’` `“` `«`) instead of rendering as the raw entity text. This applies regardless of the
+  `smartPunctuation` flag — it is the GitHub-parity behaviour for HTML entities — and is the one
+  default-mode output change in this release's punctuation work.
 - **Renderer classes reorganised (source-compatible for most users).** The four largest built-in
   renderers moved from nested classes to top-level classes in the same package:
   `BuiltinRenderers.ListRenderer` → `ListRenderer`, and likewise `TableRenderer`,
@@ -28,6 +33,20 @@ and the project follows [Semantic Versioning](https://semver.org/).
   needs the import updated. `BuiltinRenderers` drops from ~750 to ~440 lines.
 
 ### Added
+- **Opt-in smart punctuation — `MarkdownComposer.builder().smartPunctuation(true)`.** Typographic
+  replacements at parse time: straight quotes become curly quotes (nested formatting inside the
+  quotes survives), apostrophes curl (`don't` → `don’t`), `--` becomes an en-dash, `---` an
+  em-dash, `...` (and spaced `. . .`) an ellipsis, and `<<text>>` becomes `«text»` guillemets.
+  Off by default — GitHub does not smart-quote — and code spans / code blocks always stay
+  verbatim. Backed by `flexmark-ext-typographic`.
+- **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
+  the default `[TOC]` link list: swap the `TocNode` renderer
+  (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
+  the marker renders as dot-leader contents rows — "Introduction ….. 3" — with **page numbers
+  resolved automatically from the laid-out document** (the engine's `addTableOfContents`; no
+  manual two-pass) and every label a clickable jump. Heading nesting indents the label; an
+  optional title row; empty-heading and no-heading documents degrade exactly like the default
+  renderer. Runnable `BookTocExample` (paired with the page-number footer).
 - **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
   the default `[TOC]` link list: swap the `TocNode` renderer
   (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
