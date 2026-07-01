@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Track the library version from one place (mirrors cli/pom.xml's gcmd.version)
              so the detached examples pom cannot drift behind the next snapshot bump. -->
-        <gcmd.version>0.2.0-SNAPSHOT</gcmd.version>
+        <gcmd.version>0.3.0-SNAPSHOT</gcmd.version>
         <!-- Examples are never published. -->
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
