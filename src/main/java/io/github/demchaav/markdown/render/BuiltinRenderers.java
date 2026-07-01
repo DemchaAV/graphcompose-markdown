@@ -37,6 +37,7 @@ import io.github.demchaav.markdown.model.QuoteNode;
 import io.github.demchaav.markdown.model.TableCellNode;
 import io.github.demchaav.markdown.model.TableNode;
 import io.github.demchaav.markdown.model.ThematicBreakNode;
+import io.github.demchaav.markdown.model.TocNode;
 import io.github.demchaav.markdown.model.inline.InlineNode;
 import io.github.demchaav.markdown.theme.RendererRegistry;
 import io.github.demchaav.markdown.theme.style.InlineStyle;
@@ -79,12 +80,14 @@ public final class BuiltinRenderers {
         registry.register(UnsupportedBlockNode.class, new UnsupportedBlockRenderer());
         registry.register(AlertNode.class, new AlertRenderer());
         registry.register(FrontMatterNode.class, new FrontMatterRenderer());
+        registry.register(TocNode.class, new TocRenderer());
     }
 
     /**
-     * Renders a heading as a styled paragraph with space above it, and attaches a PDF
+     * Renders a heading as a styled paragraph with space above it, attaches a PDF
      * bookmark (outline entry) at its level so the rendered document gets a navigable
-     * heading tree in the viewer's outline pane.
+     * heading tree in the viewer's outline pane, and declares a GitHub-style anchor so
+     * {@code [text](#heading)} links can jump to it.
      */
     public static final class HeadingRenderer implements NodeRenderer<HeadingNode> {
         @Override
@@ -93,8 +96,12 @@ public final class BuiltinRenderers {
             RichText rich = ctx.toRich(node.content(), base);
             double above = ctx.styles().headingSpaceAbove(node.level());
             String title = ctx.inline().plainText(node.content()).strip();
+            // Use the slug planned up front (so a [TOC] above the headings links to the same anchor),
+            // falling back to an on-the-fly slug if this heading was somehow not planned.
+            String planned = ctx.headingSlug(node);
+            String anchor = planned != null ? planned : ctx.headingAnchor(title);
             host.addParagraph(p -> {
-                p.rich(rich).margin(new DocumentInsets(above, 0, 0, 0));
+                p.rich(rich).margin(new DocumentInsets(above, 0, 0, 0)).anchor(anchor);
                 if (!title.isEmpty()) {
                     p.bookmark(new DocumentBookmarkOptions(title, node.level()));
                 }
@@ -111,8 +118,15 @@ public final class BuiltinRenderers {
             }
             InlineStyle base = ctx.paragraphInline();
             RichText rich = ctx.toRich(node.content(), base);
-            double lineSpacing = ctx.tokens().typography().lineSpacing();
-            host.addParagraph(p -> p.rich(rich).lineSpacing(lineSpacing));
+            double lineSpacing = ctx.styles().lineLeading(ctx.tokens().typography().bodySize());
+            // If this paragraph is the first to cite a footnote, anchor it so the note can link back.
+            String backAnchor = ctx.footnoteBackAnchor(node.content());
+            host.addParagraph(p -> {
+                p.rich(rich).lineSpacing(lineSpacing);
+                if (backAnchor != null) {
+                    p.anchor(backAnchor);
+                }
+            });
         }
     }
 
@@ -160,7 +174,13 @@ public final class BuiltinRenderers {
                     }
                     String piece = preserveWhitespace(parts[i]);
                     if (!piece.isEmpty()) {
-                        line.style(piece, tokenStyle);
+                        // Geometric emoji (🔴 🟢 …) have no glyph in any PDF font and would render as
+                        // "?" even inside code; draw them as vector shapes (the rest stays verbatim).
+                        if (EmojiShapes.contains(piece)) {
+                            EmojiShapes.append(line, piece, tokenStyle, style.size());
+                        } else {
+                            line.style(piece, tokenStyle);
+                        }
                         hasContent = true;
                     }
                 }
@@ -298,7 +318,7 @@ public final class BuiltinRenderers {
         private static void renderItem(ListItemNode item, SectionBuilder listSection, RenderContext ctx,
                                        boolean ordered, String orderedMarker, DocumentTextStyle markerStyle,
                                        double indent, int depth) {
-            double lineSpacing = ctx.tokens().typography().lineSpacing();
+            double lineSpacing = ctx.styles().lineLeading(ctx.tokens().typography().bodySize());
             DocumentInsets itemMargin = new DocumentInsets(0, 0, 0, indent);
             listSection.addSection(itemSec -> {
                 itemSec.spacing(ctx.styles().list().itemSpacing());
@@ -309,7 +329,16 @@ public final class BuiltinRenderers {
                     RichText rich = RichText.empty();
                     prependMarker(rich, item, ordered, orderedMarker, depth, markerStyle, ctx);
                     ctx.inline().appendInto(rich, first.content(), base);
-                    itemSec.addParagraph(p -> p.rich(rich).margin(itemMargin).lineSpacing(lineSpacing));
+                    // A list item renders its leading paragraph inline (bypassing ParagraphRenderer),
+                    // so place the footnote back-anchor here too — otherwise a footnote first cited in
+                    // a list item would have a forward link but a dead back-link.
+                    String backAnchor = ctx.footnoteBackAnchor(first.content());
+                    itemSec.addParagraph(p -> {
+                        p.rich(rich).margin(itemMargin).lineSpacing(lineSpacing);
+                        if (backAnchor != null) {
+                            p.anchor(backAnchor);
+                        }
+                    });
                     start = 1;
                 } else {
                     RichText rich = RichText.empty();
@@ -419,7 +448,8 @@ public final class BuiltinRenderers {
         private static InlineStyle cellInline(InlineStyle base, MarkdownStyles.TableStyle style,
                                               DocumentColor color, boolean bold) {
             return new InlineStyle(style.family(), style.fontSize(), color, bold, false,
-                    base.codeFamily(), base.codeSize(), base.codeColor(), base.linkColor(), base.underlineLinks());
+                    base.codeFamily(), base.codeSize(), base.codeColor(), base.codeBackground(),
+                    base.linkColor(), base.underlineLinks());
         }
 
         private static TextAlign textAlign(ColumnAlignment alignment) {
@@ -619,13 +649,15 @@ public final class BuiltinRenderers {
             }
             MarkdownStyles.RuleStyle rule = ctx.styles().rule();
             double bodySize = ctx.tokens().typography().bodySize();
-            double lineSpacing = ctx.tokens().typography().lineSpacing();
+            // Footnote text renders at 0.92x body size, so leading is relative to that, not full body.
+            double lineSpacing = ctx.styles().lineLeading(bodySize * 0.92);
             DocumentColor noteColor = ctx.tokens().colors().muted();
             DocumentColor accent = ctx.tokens().colors().link();
 
             InlineStyle base = ctx.styles().paragraphInline();
             InlineStyle noteInline = new InlineStyle(base.family(), bodySize * 0.92, noteColor, false, false,
-                    base.codeFamily(), base.codeSize() * 0.92, base.codeColor(), base.linkColor(), base.underlineLinks());
+                    base.codeFamily(), base.codeSize() * 0.92, base.codeColor(), base.codeBackground(),
+                    base.linkColor(), base.underlineLinks());
             DocumentTextStyle markerStyle = DocumentTextStyle.builder()
                     .fontName(base.family().resolve(false, false)).size(bodySize * 0.92).color(accent)
                     .decoration(DocumentTextDecoration.DEFAULT).build();
@@ -641,26 +673,73 @@ public final class BuiltinRenderers {
                 notes.addLine(line -> line.horizontal(rule.width()).color(rule.color()).thickness(rule.thickness()));
                 notes.addParagraph(p -> p.text("Notes").textStyle(titleStyle));
                 for (FootnoteDefinitionNode definition : node.definitions()) {
+                    int number = definition.number();
+                    String noteAnchor = "fn-" + number;       // where the body citation jumps to
+                    String backAnchor = "fnref-" + number;    // where this note's marker jumps back to
                     notes.addSection(item -> {
                         item.spacing(2);
                         List<MarkdownNode> content = definition.content();
                         int start = 0;
                         if (!content.isEmpty() && content.get(0) instanceof ParagraphNode first) {
                             RichText rich = RichText.empty();
-                            rich.style("[" + definition.number() + "]  ", markerStyle);
+                            rich.linkTo("[" + number + "]", markerStyle, backAnchor);
+                            rich.style("  ", markerStyle);
                             ctx.inline().appendInto(rich, first.content(), noteInline);
-                            item.addParagraph(p -> p.rich(rich).lineSpacing(lineSpacing));
+                            item.addParagraph(p -> p.rich(rich).lineSpacing(lineSpacing).anchor(noteAnchor));
                             start = 1;
                         } else {
                             RichText rich = RichText.empty();
-                            rich.style("[" + definition.number() + "]", markerStyle);
-                            item.addParagraph(p -> p.rich(rich));
+                            rich.linkTo("[" + number + "]", markerStyle, backAnchor);
+                            item.addParagraph(p -> p.rich(rich).anchor(noteAnchor));
                         }
                         RenderContext childCtx = ctx.withTextColor(noteColor);
                         for (int i = start; i < content.size(); i++) {
                             childCtx.renderBlock(content.get(i), item);
                         }
                     });
+                }
+            });
+        }
+    }
+
+    /**
+     * Renders a {@code [TOC]} marker as an auto-generated, clickable table of contents: one
+     * internal link per heading, indented by heading level, each jumping to the heading's anchor.
+     * Heading slugs are planned up front, so a {@code [TOC]} above its headings still resolves
+     * (forward references). Empty-text headings are skipped; a document with no headings renders
+     * nothing.
+     */
+    public static final class TocRenderer implements NodeRenderer<TocNode> {
+        @Override
+        public void render(TocNode node, SectionBuilder host, RenderContext ctx) {
+            List<TocEntry> entries = ctx.tocEntries().stream()
+                    .filter(entry -> !entry.text().isEmpty())
+                    .toList();
+            if (entries.isEmpty()) {
+                return;
+            }
+            int minLevel = entries.stream().mapToInt(TocEntry::level).min().orElse(1);
+            InlineStyle base = ctx.paragraphInline();
+            double bodySize = ctx.tokens().typography().bodySize();
+            double indentPer = ctx.styles().list().indent();
+            double lineSpacing = ctx.styles().lineLeading(bodySize);
+            DocumentTextStyle linkStyle = DocumentTextStyle.builder()
+                    .fontName(base.family().resolve(false, false))
+                    .size(base.size())
+                    .color(base.linkColor())
+                    .decoration(base.underlineLinks()
+                            ? DocumentTextDecoration.UNDERLINE
+                            : DocumentTextDecoration.DEFAULT)
+                    .build();
+            host.addSection(toc -> {
+                toc.spacing(ctx.styles().list().itemSpacing());
+                for (TocEntry entry : entries) {
+                    double indent = indentPer * (entry.level() - minLevel);
+                    RichText rich = RichText.empty();
+                    rich.linkTo(entry.text(), linkStyle, entry.slug());
+                    toc.addParagraph(p -> p.rich(rich)
+                            .margin(new DocumentInsets(0, 0, 0, indent))
+                            .lineSpacing(lineSpacing));
                 }
             });
         }

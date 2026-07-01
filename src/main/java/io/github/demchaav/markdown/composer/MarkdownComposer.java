@@ -5,6 +5,8 @@ import com.demcha.compose.document.api.DocumentSession;
 import com.demcha.compose.document.exceptions.DocumentRenderingException;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.extension.CustomBlockParser;
+import io.github.demchaav.markdown.extension.DefaultImageResolver;
+import io.github.demchaav.markdown.extension.ImageResolver;
 import io.github.demchaav.markdown.mapper.FlexmarkAstMapper;
 import io.github.demchaav.markdown.model.MarkdownDocument;
 import io.github.demchaav.markdown.model.MarkdownNode;
@@ -16,7 +18,10 @@ import io.github.demchaav.markdown.theme.MarkdownTheme;
 import io.github.demchaav.markdown.theme.style.MarkdownStyles;
 import io.github.demchaav.markdown.theme.tokens.PageTokens;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -57,13 +62,24 @@ public final class MarkdownComposer {
      * In the default lenient mode unsupported blocks/inline are surfaced as raw text instead.
      */
     private Rendered toRendered(MarkdownDocument document) {
+        return toRendered(document, theme);
+    }
+
+    private Rendered toRendered(MarkdownDocument document, MarkdownTheme renderTheme) {
         if (strict) {
             String unsupported = UnsupportedScanner.firstUnsupported(document);
             if (unsupported != null) {
                 throw new UnsupportedMarkdownException("strict mode: " + unsupported);
             }
         }
-        return new Rendered(document, theme);
+        return new Rendered(document, renderTheme);
+    }
+
+    /** Parses Markdown into the semantic model, honouring the {@code customBlocks} setting. */
+    private MarkdownDocument parse(String markdown) {
+        return customBlocksEnabled
+                ? customBlockParser.parse(markdown)
+                : mapper.map(parser.parse(markdown));
     }
 
     /**
@@ -98,10 +114,55 @@ public final class MarkdownComposer {
      * @return a {@link Rendered} ready to write to PDF
      */
     public Rendered render(String markdown) {
-        MarkdownDocument document = customBlocksEnabled
-                ? customBlockParser.parse(markdown)
-                : mapper.map(parser.parse(markdown));
-        return toRendered(document);
+        return toRendered(parse(markdown));
+    }
+
+    /**
+     * Reads a Markdown <em>file</em> (UTF-8) and renders it, resolving relative image paths in the
+     * document against the file's own directory — so a {@code ![](diagram.png)} sitting next to the
+     * {@code .md} just works without wiring an {@code ImageResolver} by hand.
+     *
+     * <pre>{@code
+     * MarkdownComposer.create(theme).renderFile(Path.of("doc.md")).writePdf(Path.of("doc.pdf"));
+     * }</pre>
+     *
+     * <p>The file's directory is used as the image base for this render only; the composer and its
+     * theme are unchanged. Every other theme setting (emoji resolver, renderers, tokens, fonts) is
+     * kept as-is. To supply a custom {@code ImageResolver} instead of the file's directory, use
+     * {@link #renderFile(Path, ImageResolver)}.</p>
+     *
+     * @param file the Markdown file to read and render; must not be {@code null}
+     * @return a {@link Rendered} ready to write to PDF
+     * @throws IOException          if the file cannot be read
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    public Rendered renderFile(Path file) throws IOException {
+        Objects.requireNonNull(file, "file");
+        Path dir = file.toAbsolutePath().getParent();
+        ImageResolver resolver = dir == null ? theme.imageResolver() : new DefaultImageResolver(dir);
+        return renderFile(file, resolver);
+    }
+
+    /**
+     * Reads a Markdown file (UTF-8) and renders it, resolving relative images through the given
+     * {@code imageResolver} — the explicit form of {@link #renderFile(Path)} for callers who want
+     * a custom resolver (classpath, CDN, …) instead of the file's own directory.
+     *
+     * <p>The resolver applies to this render only; the composer and its theme are unchanged. Every
+     * other theme setting (emoji resolver, renderers, tokens, fonts) is kept as-is.</p>
+     *
+     * @param file          the Markdown file to read and render; must not be {@code null}
+     * @param imageResolver the resolver for relative image sources; must not be {@code null}
+     * @return a {@link Rendered} ready to write to PDF
+     * @throws IOException          if the file cannot be read
+     * @throws NullPointerException if {@code file} or {@code imageResolver} is {@code null}
+     */
+    public Rendered renderFile(Path file, ImageResolver imageResolver) throws IOException {
+        Objects.requireNonNull(file, "file");
+        Objects.requireNonNull(imageResolver, "imageResolver");
+        String markdown = Files.readString(file, StandardCharsets.UTF_8);
+        MarkdownTheme themeForFile = MarkdownTheme.builder(theme).imageResolver(imageResolver).build();
+        return toRendered(parse(markdown), themeForFile);
     }
 
     /**
@@ -263,6 +324,9 @@ public final class MarkdownComposer {
             MarkdownStyles styles = new MarkdownStyles(theme.tokens());
             RenderContext ctx = new RenderContext(theme, styles,
                     new InlineRenderer(theme.emojiResolver(), theme.imageResolver()), theme.imageResolver());
+            // Plan heading slugs (and the TOC entry list) up front so a [TOC] above its headings
+            // links to the same anchors the headings declare.
+            ctx.planHeadings(document);
             session.pageFlow(flow -> flow.addSection("Body", body -> {
                 body.spacing(styles.blockSpacing());
                 if (document.blocks().isEmpty()) {

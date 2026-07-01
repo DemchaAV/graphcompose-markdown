@@ -29,6 +29,8 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.ThemeGalleryExample` | The same Markdown through every bundled theme | `gallery/*.pdf` |
 | `…examples.CustomBlockExample` | A custom `:::note` renderer | `custom-block.pdf` |
 | `…examples.AlertsAndOutlineExample` | The five GitHub alerts + a navigable heading outline | `alerts.pdf` |
+| `…examples.InPdfNavigationExample` | Clickable `[text](#heading)` links, bidirectional footnotes, inline-code chips | `in-pdf-navigation.pdf` |
+| `…examples.TocExample` | A `[TOC]` marker → auto-generated, clickable table of contents nested by heading level | `toc.pdf` |
 | `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
 | `…examples.FrontMatterExample` | A YAML `---` front-matter title block | `front-matter.pdf` |
 

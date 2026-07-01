@@ -23,7 +23,9 @@ import java.util.Map;
  * colour is intrinsic). Non-geometric emoji ({@code 😀}, {@code 🚀}, …) are left untouched —
  * they still go through the {@code :shortcode:} image path or render as text.</p>
  *
- * <p>Applied only to flowing inline text; fenced/inline code stays verbatim (Markdown rule).</p>
+ * <p>Applied to flowing inline text <em>and</em> inside fenced code blocks: these emoji have no
+ * glyph in any PDF font, so drawing the shape is strictly more faithful than the missing-glyph
+ * {@code "?"} that "verbatim" code would otherwise produce. All other code text stays verbatim.</p>
  */
 final class EmojiShapes {
 

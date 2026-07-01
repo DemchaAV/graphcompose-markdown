@@ -19,6 +19,7 @@ import io.github.demchaav.markdown.theme.tokens.FontFamily;
  * @param codeFamily     font family for inline code
  * @param codeSize       font size for inline code
  * @param codeColor      colour for inline code
+ * @param codeBackground chip fill colour behind inline code
  * @param linkColor      colour for hyperlinks
  * @param underlineLinks whether links are underlined
  */
@@ -31,6 +32,7 @@ public record InlineStyle(
         FontFamily codeFamily,
         double codeSize,
         DocumentColor codeColor,
+        DocumentColor codeBackground,
         DocumentColor linkColor,
         boolean underlineLinks) {
 }
