@@ -22,9 +22,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Emoji shortcodes ({@code :rocket:}) parse to an {@link EmojiRun} and render as inline
- * images when an {@code EmojiResolver} is set, or as readable {@code :shortcode:} text by
- * default — never as broken glyphs.
+ * Emoji shortcodes ({@code :rocket:}) parse to an {@link EmojiRun} and resolve in priority
+ * order: an inline image from a configured {@code EmojiResolver}, else a vector colour glyph
+ * from the optional {@code graph-compose-emoji} set (on this test classpath), else readable
+ * {@code :shortcode:} text — never a broken glyph.
  */
 class GithubEmojiTest {
 
@@ -52,11 +53,16 @@ class GithubEmojiTest {
     }
 
     @Test
-    void withoutAResolverEmojiRendersAsShortcodeText() throws Exception {
+    void withoutAResolverAKnownShortcodeRendersAsAVectorGlyph() throws Exception {
+        // graph-compose-emoji is on the test classpath, so with no resolver a known shortcode
+        // becomes a vector colour glyph: the surrounding text survives, the literal :rocket:
+        // does not appear (it is drawn as vector art, not text).
         byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light())
                 .render("Launch :rocket: now").toPdfBytes();
 
-        assertThat(extractText(pdf)).contains(":rocket:");
+        String text = extractText(pdf);
+        assertThat(text).contains("Launch").contains("now");
+        assertThat(text).doesNotContain(":rocket:");
     }
 
     @Test

@@ -7,6 +7,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Vector colour emoji out of the box — optional `graph-compose-emoji` support.** With the
+  companion artifact on the classpath (declared `optional`, mirroring `graph-compose-fonts`),
+  `:shortcode:` emoji render as crisp Noto vector glyphs at any size — no user-supplied images.
+  Resolution priority: a theme `EmojiResolver` image still wins (the override seam), then the
+  vector set, then the readable `:shortcode:` text fallback **in the surrounding style** (the
+  engine's own fallback would drop the theme styling, so the library resolves via `EmojiLibrary`
+  itself and only emits a glyph when one exists). A vector emoji inside a link carries the link
+  annotation. Runnable `VectorEmojiExample`.
 - **PDFs open with the bookmark panel visible.** A rendered document that has at least one
   heading now writes the viewer preference `PageMode.USE_OUTLINES`, so PDF readers open the
   bookmark/outline sidebar and surface the heading tree the library already emits. Heading-less
