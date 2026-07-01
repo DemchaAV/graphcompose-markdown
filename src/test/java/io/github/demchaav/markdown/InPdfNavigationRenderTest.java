@@ -71,6 +71,25 @@ class InPdfNavigationRenderTest {
                 .isGreaterThanOrEqualTo(2);
     }
 
+    @Test
+    void footnoteCitedFromATableCellIsAlsoBidirectional() throws Exception {
+        // Table cell paragraphs bypass ParagraphRenderer, so the back-anchor must be placed
+        // there too — otherwise this is 1 GoTo (forward only), not 2.
+        String md = """
+                | Claim | Source |
+                |---|---|
+                | Water is wet.[^1] | lab notes |
+
+                [^1]: The supporting note.
+                """;
+
+        byte[] pdf = MarkdownComposer.create(DefaultMarkdownTheme.light()).render(md).toPdfBytes();
+
+        assertThat(countLinkActions(pdf)[0])
+                .as("a footnote cited from a table cell is bidirectional (2 GoTo)")
+                .isGreaterThanOrEqualTo(2);
+    }
+
     /** @return {@code [goToCount, uriCount]} over every link annotation in the PDF */
     private static int[] countLinkActions(byte[] pdf) throws Exception {
         int goTo = 0;
