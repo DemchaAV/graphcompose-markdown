@@ -61,6 +61,52 @@ class BookTocTest {
     }
 
     @Test
+    void nestedHeadingIndentsItsTocLabelWithNonBreakingSpaces() throws Exception {
+        String md = "[TOC]\n\n# Alpha\n\n## Beta\n\n" + FILLER + "\n\n# Omega\n\nTail.\n";
+
+        byte[] pdf = bookComposer(null).render(md).toPdfBytes();
+
+        try (PDDocument doc = Loader.loadPDF(pdf)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            String[] lines = stripper.getText(doc).split("\\r?\\n");
+            String alphaLine = lineContaining(lines, "Alpha");
+            String betaLine = lineContaining(lines, "Beta");
+            String omegaLine = lineContaining(lines, "Omega");
+            // The h2 label is indented (PDFBox extracts the NBSP indent as leading blanks);
+            assertThat(betaLine.substring(0, betaLine.indexOf("Beta")))
+                    .as("h2 entry carries a leading indent").isNotEmpty().isBlank();
+            assertThat(alphaLine).as("h1 entry is not indented").startsWith("Alpha");
+            // The resolved page number sits on ITS entry's line (Omega starts on a later page).
+            assertThat(omegaLine).containsPattern("[2-9]");
+        }
+    }
+
+    @Test
+    void h2OnlyDocumentIsNotIndented() throws Exception {
+        // minLevel normalization: when the shallowest heading is h2, it IS the top level.
+        String md = "[TOC]\n\n## Solo\n\nBody.\n";
+
+        byte[] pdf = bookComposer(null).render(md).toPdfBytes();
+
+        try (PDDocument doc = Loader.loadPDF(pdf)) {
+            String text = new PDFTextStripper().getText(doc);
+            String soloTocLine = lineContaining(text.split("\\r?\\n"), "Solo");
+            assertThat(soloTocLine).as("h2-only doc is top level, no indent").startsWith("Solo");
+        }
+    }
+
+    private static String lineContaining(String[] lines, String needle) {
+        for (String line : lines) {
+            if (line.contains(needle)) {
+                return line;
+            }
+        }
+        throw new AssertionError("no line containing '" + needle + "'");
+    }
+
+    @Test
     void bookTocWithoutHeadingsRendersNothingAndDoesNotCrash() throws Exception {
         byte[] pdf = bookComposer(null).render("[TOC]\n\nJust prose, no headings.").toPdfBytes();
 

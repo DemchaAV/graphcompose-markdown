@@ -23,7 +23,7 @@ import java.util.List;
  * }</pre>
  *
  * <p>The default {@link TocRenderer} (a plain clickable link list, no page numbers) stays the
- * screen-oriented default. Heading nesting is shown by indenting the label with spaces —
+ * screen-oriented default. Heading nesting is shown by indenting the label with non-breaking spaces —
  * the engine's contents rows are flat. Empty-text headings are skipped; a document with no
  * headings renders nothing.</p>
  */

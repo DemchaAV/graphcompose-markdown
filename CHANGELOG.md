@@ -19,16 +19,6 @@ and the project follows [Semantic Versioning](https://semver.org/).
   were covered in 0.2.0). A footnote cited only inside a *heading* still keeps just its forward
   link — a heading's single anchor slot already carries its navigation slug.
 
-### Added
-- **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
-  the default `[TOC]` link list: swap the `TocNode` renderer
-  (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
-  the marker renders as dot-leader contents rows — "Introduction ….. 3" — with **page numbers
-  resolved automatically from the laid-out document** (the engine's `addTableOfContents`; no
-  manual two-pass) and every label a clickable jump. Heading nesting indents the label; an
-  optional title row; empty-heading and no-heading documents degrade exactly like the default
-  renderer. Runnable `BookTocExample` (paired with the page-number footer).
-
 ### Changed
 - **Renderer classes reorganised (source-compatible for most users).** The four largest built-in
   renderers moved from nested classes to top-level classes in the same package:
@@ -38,6 +28,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   needs the import updated. `BuiltinRenderers` drops from ~750 to ~440 lines.
 
 ### Added
+- **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
+  the default `[TOC]` link list: swap the `TocNode` renderer
+  (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
+  the marker renders as dot-leader contents rows — "Introduction ….. 3" — with **page numbers
+  resolved automatically from the laid-out document** (the engine's `addTableOfContents`; no
+  manual two-pass) and every label a clickable jump. Heading nesting indents the label; an
+  optional title row; empty-heading and no-heading documents degrade exactly like the default
+  renderer. Runnable `BookTocExample` (paired with the page-number footer).
 - **Vector colour emoji out of the box — optional `graph-compose-emoji` support.** With the
   companion artifact on the classpath (declared `optional`, mirroring `graph-compose-fonts`),
   `:shortcode:` emoji render as crisp Noto vector glyphs at any size — no user-supplied images.
