@@ -132,13 +132,14 @@ build it once and reuse it.
 | A parsed Flexmark **`Document`** | `composer.render(Document)` | bring your own parser/extensions; `:::` blocks are *not* extracted on this path |
 | A hand-built **`MarkdownDocument`** | `composer.render(MarkdownDocument)` | the stable semantic-model hand-off point |
 
-Each returns a `Rendered`, which writes the PDF three ways (all throw `DocumentRenderingException`):
+Each returns a `Rendered`, with four ways out (all throw `DocumentRenderingException` on a render failure):
 
 | Get this out | Call |
 |---|---|
 | Write to a **file** | `rendered.writePdf(Path)` |
 | Stream to an **`OutputStream`** | `rendered.writePdf(OutputStream)` |
 | In-memory **`byte[]`** | `rendered.toPdfBytes()` |
+| **PNG page images** (thumbnails, previews) | `rendered.toImages(dpi)` / `toImage(pageIndex, dpi)` |
 
 ```java
 MarkdownComposer composer = MarkdownComposer.create(GitHubTheme.dark());
@@ -235,7 +236,9 @@ stars `⭐` — render as **native vector shapes** in their own colour (no font,
 instead of a missing-glyph `?`.
 
 Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
-mirrors the document's heading tree — and each declares a **GitHub-style anchor**, so
+mirrors the document's heading tree and **opens automatically** when the document has
+headings (opt out via `MarkdownComposer.builder().openOutline(false)`) — and each
+declares a **GitHub-style anchor**, so
 `[text](#heading)` links jump straight to it as native PDF go-to actions (footnote markers
 jump to their note and back the same way). A standalone **`[TOC]`** (or `[[_TOC_]]`) line
 expands into an **auto-generated, clickable table of contents** — one link per heading,

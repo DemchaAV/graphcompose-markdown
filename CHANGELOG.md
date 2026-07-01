@@ -7,6 +7,16 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **PDFs open with the bookmark panel visible.** A rendered document that has at least one
+  heading now writes the viewer preference `PageMode.USE_OUTLINES`, so PDF readers open the
+  bookmark/outline sidebar and surface the heading tree the library already emits. Heading-less
+  documents are untouched (no empty panel), and `MarkdownComposer.builder().openOutline(false)`
+  turns the preference off. PDF-only; other backends ignore it.
+- **Rasterize straight to images — `Rendered.toImages(dpi)` / `toImage(pageIndex, dpi)`.**
+  Renders the document directly to one `BufferedImage` per page (or a single page) without the
+  previous PDF-write → re-parse round-trip — for thumbnails, web preview cards, and CI visual
+  snapshots. Thin wrappers over the engine's 1.9 `DocumentSession.toImages(...)`. Runnable
+  `PngExportExample`.
 - **Running footer with page numbers — `FooterTokens`.** A new token group adds an optional page
   footer whose `left`/`center`/`right` text may use the `{page}` / `{pages}` / `{date}` placeholders
   the PDF backend substitutes per page. It is **disabled by default** (single-page/screen output is

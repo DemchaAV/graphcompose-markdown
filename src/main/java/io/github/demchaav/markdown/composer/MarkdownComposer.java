@@ -6,6 +6,7 @@ import com.demcha.compose.document.exceptions.DocumentRenderingException;
 import com.demcha.compose.document.output.DocumentHeaderFooter;
 import com.demcha.compose.document.output.DocumentHeaderFooterZone;
 import com.demcha.compose.document.output.DocumentPageNumbering;
+import com.demcha.compose.document.output.DocumentViewerPreferences;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.extension.CustomBlockParser;
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
@@ -22,11 +23,13 @@ import io.github.demchaav.markdown.theme.style.MarkdownStyles;
 import io.github.demchaav.markdown.theme.tokens.FooterTokens;
 import io.github.demchaav.markdown.theme.tokens.PageTokens;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,6 +53,7 @@ public final class MarkdownComposer {
     private final CustomBlockParser customBlockParser;
     private final boolean customBlocksEnabled;
     private final boolean strict;
+    private final boolean openOutline;
     private final MarkdownTheme theme;
 
     private MarkdownComposer(Builder builder) {
@@ -58,6 +62,7 @@ public final class MarkdownComposer {
         this.customBlockParser = new CustomBlockParser(parser, mapper);
         this.customBlocksEnabled = builder.customBlocks;
         this.strict = builder.strict;
+        this.openOutline = builder.openOutline;
         this.theme = builder.theme;
     }
 
@@ -76,7 +81,7 @@ public final class MarkdownComposer {
                 throw new UnsupportedMarkdownException("strict mode: " + unsupported);
             }
         }
-        return new Rendered(document, renderTheme);
+        return new Rendered(document, renderTheme, openOutline);
     }
 
     /** Parses Markdown into the semantic model, honouring the {@code customBlocks} setting. */
@@ -203,6 +208,7 @@ public final class MarkdownComposer {
         private MarkdownTheme theme = DefaultMarkdownTheme.light();
         private boolean customBlocks = true;
         private boolean strict = false;
+        private boolean openOutline = true;
 
         private Builder() {
         }
@@ -245,6 +251,19 @@ public final class MarkdownComposer {
         }
 
         /**
+         * Controls whether a rendered PDF asks the viewer to open its bookmark/outline panel
+         * (default on). The preference is only written when the document actually has at least
+         * one bookmarkable heading, so heading-less documents are unaffected either way.
+         *
+         * @param enabled whether to open the outline panel in the PDF viewer
+         * @return this builder
+         */
+        public Builder openOutline(boolean enabled) {
+            this.openOutline = enabled;
+            return this;
+        }
+
+        /**
          * Builds the composer.
          *
          * @return a new {@link MarkdownComposer}
@@ -262,10 +281,12 @@ public final class MarkdownComposer {
 
         private final MarkdownDocument document;
         private final MarkdownTheme theme;
+        private final boolean openOutline;
 
-        private Rendered(MarkdownDocument document, MarkdownTheme theme) {
+        private Rendered(MarkdownDocument document, MarkdownTheme theme, boolean openOutline) {
             this.document = document;
             this.theme = theme;
+            this.openOutline = openOutline;
         }
 
         /** @return the underlying semantic document tree */
@@ -312,6 +333,39 @@ public final class MarkdownComposer {
             }
         }
 
+        /**
+         * Rasterizes the document straight to one image per page — no PDF write / re-parse
+         * round-trip — for thumbnails, web previews, or visual snapshots.
+         *
+         * @param dpi the render resolution in dots per inch (e.g. 96 for screen, 150+ for print)
+         * @return one {@link BufferedImage} per page, in page order
+         * @throws IllegalArgumentException   if {@code dpi <= 0}
+         * @throws DocumentRenderingException if rendering fails
+         */
+        public List<BufferedImage> toImages(int dpi) throws DocumentRenderingException {
+            try (DocumentSession session = newSession()) {
+                populate(session);
+                return session.toImages(dpi);
+            }
+        }
+
+        /**
+         * Rasterizes a single page to an image.
+         *
+         * @param pageIndex the 0-based page index
+         * @param dpi       the render resolution in dots per inch
+         * @return the page as a {@link BufferedImage}
+         * @throws IllegalArgumentException   if {@code dpi <= 0}
+         * @throws IndexOutOfBoundsException  if {@code pageIndex} is out of range
+         * @throws DocumentRenderingException if rendering fails
+         */
+        public BufferedImage toImage(int pageIndex, int dpi) throws DocumentRenderingException {
+            try (DocumentSession session = newSession()) {
+                populate(session);
+                return session.toImage(pageIndex, dpi);
+            }
+        }
+
         private DocumentSession newSession() {
             PageTokens page = theme.tokens().page();
             DocumentSession session = GraphCompose.document().pageSize(page.pageSize()).create();
@@ -345,6 +399,10 @@ public final class MarkdownComposer {
             // Plan heading slugs (and the TOC entry list) up front so a [TOC] above its headings
             // links to the same anchors the headings declare.
             ctx.planHeadings(document);
+            // Ask the viewer to open its bookmark panel — but only when there is an outline to show.
+            if (openOutline && ctx.hasBookmarkableHeading()) {
+                session.viewerPreferences(DocumentViewerPreferences.openOutline());
+            }
             session.pageFlow(flow -> flow.addSection("Body", body -> {
                 body.spacing(styles.blockSpacing());
                 if (document.blocks().isEmpty()) {
