@@ -6,6 +6,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **Renderer classes reorganised (source-compatible for most users).** The four largest built-in
+  renderers moved from nested classes to top-level classes in the same package:
+  `BuiltinRenderers.ListRenderer` → `ListRenderer`, and likewise `TableRenderer`,
+  `FootnotesRenderer`, `TocRenderer` (all still `io.github.demchaav.markdown.render`). Behaviour
+  and registration are unchanged; only code that referenced those nested class names directly
+  needs the import updated. `BuiltinRenderers` drops from ~750 to ~440 lines.
+
 ### Added
 - **Vector colour emoji out of the box — optional `graph-compose-emoji` support.** With the
   companion artifact on the classpath (declared `optional`, mirroring `graph-compose-fonts`),
