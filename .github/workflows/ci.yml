@@ -14,6 +14,42 @@ permissions:
   contents: read
 
 jobs:
+  version-lockstep:
+    # The detached cli/ and examples/ modules pin the library via gcmd.version (and
+    # carry their own <version>). At the v0.2.0 release those literals drifted from
+    # the root version and the detached-module build broke on the tagged commit.
+    # This guard fails fast — before any JDK matrix time — when the five version
+    # literals disagree, so a release-prep commit cannot tag with the drift.
+    name: Detached modules track the library version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Compare version literals
+        run: |
+          extract() { sed -n "s/.*<$2>\([^<]*\)<\/$2>.*/\1/p" "$1" | head -1; }
+          root=$(extract pom.xml version)
+          gcmd_cli=$(extract cli/pom.xml gcmd.version)
+          gcmd_examples=$(extract examples/pom.xml gcmd.version)
+          mod_cli=$(extract cli/pom.xml version)
+          mod_examples=$(extract examples/pom.xml version)
+          if [ -z "$root" ] || [ -z "$gcmd_cli" ] || [ -z "$gcmd_examples" ]; then
+            echo "::error::Could not extract version literals — pom layout changed; update this guard."
+            exit 1
+          fi
+          echo "root=$root cli.gcmd=$gcmd_cli examples.gcmd=$gcmd_examples cli.module=$mod_cli examples.module=$mod_examples"
+          fail=0
+          for v in "$gcmd_cli" "$gcmd_examples" "$mod_cli" "$mod_examples"; do
+            if [ "$v" != "$root" ]; then fail=1; fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::Version drift: cli/examples must track the root <version> ($root)." \
+                 "Bump gcmd.version and the module <version> in cli/pom.xml and examples/pom.xml" \
+                 "in the same commit that changes the root version (see the v0.2.0 release lesson)."
+            exit 1
+          fi
+
   build-and-test:
     name: Build and run tests (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest

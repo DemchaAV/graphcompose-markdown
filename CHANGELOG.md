@@ -6,6 +6,12 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Build
+- **CI guards the version lockstep of the detached modules.** A new fail-fast job asserts
+  that `cli/pom.xml` and `examples/pom.xml` (`gcmd.version` and their own `<version>`) equal the
+  root project version. At the v0.2.0 release these literals drifted and broke the tagged
+  commit's detached-module build; a release-prep commit can no longer tag with the drift.
+
 ### Added
 - **Vector colour emoji out of the box — optional `graph-compose-emoji` support.** With the
   companion artifact on the classpath (declared `optional`, mirroring `graph-compose-fonts`),
