@@ -4,7 +4,7 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## v0.2.0 — 2026-07-01
 
 ### Added
 - **Auto-generated clickable table of contents — a `[TOC]` marker.** A standalone `[TOC]`
