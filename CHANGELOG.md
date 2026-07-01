@@ -7,13 +7,45 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Auto-generated clickable table of contents — a `[TOC]` marker.** A standalone `[TOC]`
+  (or `[[_TOC_]]`, any case) line expands into a generated, clickable list of links to every
+  heading, nested by heading level and indented accordingly. Each entry is a native in-document
+  jump to the heading's anchor, so the TOC works from a PDF viewer. Heading slugs are planned up
+  front, so a `[TOC]` placed *above* its headings still resolves (forward references), and
+  duplicate-text headings get the same de-duplicated slugs (`-1`, `-2`) in both the TOC and the
+  headings. New `TocNode` model type + `BuiltinRenderers.TocRenderer`; empty-text headings are
+  skipped and a document with no headings renders nothing. Built entirely on the existing heading
+  anchors + internal-link primitives.
+- **`MarkdownComposer.renderFile(Path)` — a file-in entry point.** The library's `render(...)`
+  methods take a Markdown *string* (or a parsed AST); reading the file was left to the caller.
+  `renderFile(Path)` now reads a Markdown file (UTF-8) and renders it, **resolving relative image
+  paths against the file's own directory** — so a standalone `doc.md` with `![](diagram.png)` next
+  to it renders without wiring an `ImageResolver` by hand. It returns the usual `Rendered`
+  (`writePdf` / `toPdfBytes`). The composer and its theme are unchanged (the directory is used as the
+  image base for that one render). A `renderFile(Path, ImageResolver)` overload takes an explicit
+  resolver (classpath, CDN, …) instead of the file's directory.
+- **In-document navigation (clickable `[text](#heading)` links and footnotes).** Built on the
+  GraphCompose 1.9 anchor/internal-link API. Every heading now declares a GitHub-style anchor
+  slug (lower-cased, punctuation stripped, spaces hyphenated, with `-1`/`-2` suffixes for
+  duplicate-text headings), so a `[jump](#my-heading)` link becomes a native PDF `GoTo` action
+  instead of inert styled text — previously such relative/anchor hrefs could not be annotated and
+  rendered as plain text. Footnotes are bidirectional: a `[N]` reference jumps to its note
+  (`fn-N`), and the note's marker jumps back to the citation (`fnref-N`), the back-anchor placed
+  on the first block that cites each footnote. Fragment matching slugifies the link target the
+  same way headings do, so both `#My Heading` and `#my-heading` resolve. A `#fragment` always
+  becomes an internal link; if no heading declares that anchor the engine renders it as plain text
+  (its unknown-anchor fallback) rather than crashing. External `http(s)` links are unchanged.
 - **Geometric emoji render as vector shapes.** Literal Unicode emoji that map cleanly to a
   shape — coloured circles (`🔴🟠🟡🟢🔵🟣🟤⚫⚪`), squares (`🟥🟧🟨🟩🟦🟪🟫⬛⬜`), `🔺`,
   diamonds (`🔶🔷🔸🔹`) and stars (`⭐🌟`) — now draw as native inline vector shapes in their
   conventional colour, instead of the missing-glyph `?` that PDF fonts produce (they have no
   colour-emoji glyphs). Uses the engine's inline-shape primitives, so it needs no font and no
-  image. Other emoji are unchanged (the `:shortcode:` image path still applies); code spans stay
-  verbatim.
+  image. They render in flowing text, **inline code, and fenced code blocks** — in code a literal
+  `🔴`/`🟡`/`🟢` (e.g. a colour-coded legend) would otherwise hit the PDF mono font, which has no
+  emoji glyph, and come out as `?`; drawing the shape is strictly more faithful, and all other
+  code text stays verbatim (an emoji-bearing inline-code span forgoes its chip, since the chip
+  background can't host a shape). Other (non-geometric) emoji are unchanged (the `:shortcode:`
+  image path still applies).
 - **Command-line renderer.** A standalone `cli/` module (outside the main build, like
   `examples/`) builds an executable fat-jar that renders Markdown to PDF from the shell:
   `java -jar graph-compose-markdown-cli.jar INPUT.md [-o OUT.pdf] [-t THEME] [-i IMAGES]
@@ -45,6 +77,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   themes are unchanged.
 
 ### Changed
+- **GraphCompose engine bumped 1.8.0 → 1.9.0.** Picks up the in-document navigation API
+  (anchors, internal `linkTo`, the `linkTarget()` accessor) and inline highlight chips used by
+  the features above. No source changes required of consumers; the new `linkTarget()` on inline
+  runs supersedes the now-deprecated `linkOptions()` bridge, which still works for external links.
+- **Inline `code` renders on a rounded chip.** Inline code spans now sit on a padded, rounded
+  background (the GitHub inline-`code` look) via the engine's inline highlight-chip primitive,
+  instead of bare monospace text. The chip fill is theme-aware — it reads the theme's
+  `codeBackground` token, so dark themes get a dark chip — added as a new `InlineStyle.codeBackground`
+  component. Code text stays verbatim; code inside a link keeps the link styling (no chip).
 - **Alert icons.** GitHub-style alerts now render a vector icon next to the title, in the
   alert's accent colour — an info circle (Note), a lightbulb (Tip), a message bubble
   (Important), a warning triangle (Warning) and an octagon (Caution). The glyphs are drawn
@@ -66,6 +107,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
   compact item spacing. `ListNode` keeps a three-arg constructor (tight) for source compatibility.
 
 ### Fixed
+- **Body line spacing now honours the `lineSpacing` multiplier (text was cramped).** The
+  renderers fed the typography `lineSpacing` token — documented as a multiplier (1.0 = single)
+  — straight into the engine's `ParagraphBuilder.lineSpacing(...)`, which takes **points**. So
+  a 1.4 "multiplier" added only ~1.4 pt of leading and wrapped lines in paragraphs, list items
+  and footnotes read as dense. The value is now converted to extra leading in points
+  (`(multiplier − 1) × fontSize`) via the new `MarkdownStyles.lineLeading(...)`, so at 11 pt body
+  1.4 adds ~4.4 pt. Every theme's existing multiplier (1.35–1.5) now produces the airy spacing it
+  implied; the default theme is nudged 1.35 → 1.4. Code blocks keep their tight leading.
 - **`examples/` builds on a clean checkout again.** The detached `examples/` module still
   pinned `graph-compose-markdown:0.1.0-SNAPSHOT` after the `0.2.0` bump, so running an example
   on a fresh clone or CI runner failed with an unresolved-dependency error. Bumped it to

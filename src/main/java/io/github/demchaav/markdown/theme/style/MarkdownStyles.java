@@ -45,6 +45,7 @@ public final class MarkdownStyles {
                 tokens.typography().codeFamily(),
                 tokens.typography().codeSize(),
                 tokens.colors().code(),
+                tokens.colors().codeBackground(),
                 tokens.colors().link(),
                 tokens.shape().underlineLinks());
     }
@@ -65,6 +66,7 @@ public final class MarkdownStyles {
                 tokens.typography().codeFamily(),
                 tokens.typography().headingSize(level) * 0.85,
                 tokens.colors().code(),
+                tokens.colors().codeBackground(),
                 tokens.colors().link(),
                 tokens.shape().underlineLinks());
     }
@@ -73,12 +75,27 @@ public final class MarkdownStyles {
     public InlineStyle bodyInlineFor(DocumentColor textColor) {
         InlineStyle base = paragraphInline();
         return new InlineStyle(base.family(), base.size(), textColor, false, false,
-                base.codeFamily(), base.codeSize(), base.codeColor(), base.linkColor(), base.underlineLinks());
+                base.codeFamily(), base.codeSize(), base.codeColor(), base.codeBackground(),
+                base.linkColor(), base.underlineLinks());
     }
 
     /** @return the vertical gap between top-level blocks, in points */
     public double blockSpacing() {
         return tokens.spacing().blockSpacing();
+    }
+
+    /**
+     * Converts the body line-spacing multiplier into the extra leading (in points) the engine
+     * adds between wrapped lines of a paragraph at the given font size. The engine's
+     * {@code lineSpacing} is absolute points, so a multiplier of {@code 1.0} yields no extra
+     * leading (single spacing) and, e.g., {@code 1.5} adds half the font size.
+     *
+     * @param fontSize the font size the leading is relative to, in points
+     * @return the extra inter-line leading in points (never negative)
+     */
+    public double lineLeading(double fontSize) {
+        double extra = (tokens.typography().lineSpacing() - 1.0) * fontSize;
+        return Math.max(0.0, extra);
     }
 
     /**

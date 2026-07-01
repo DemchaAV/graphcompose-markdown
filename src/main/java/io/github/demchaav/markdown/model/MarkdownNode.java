@@ -12,5 +12,5 @@ package io.github.demchaav.markdown.model;
 public sealed interface MarkdownNode
         permits HeadingNode, ParagraphNode, ListNode, CodeBlockNode, QuoteNode,
                 ThematicBreakNode, ImageNode, TableNode, CustomBlockNode, FootnotesNode,
-                AlertNode, FrontMatterNode, UnsupportedBlockNode {
+                AlertNode, FrontMatterNode, TocNode, UnsupportedBlockNode {
 }

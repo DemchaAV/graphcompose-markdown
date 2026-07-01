@@ -100,7 +100,7 @@ import java.nio.file.Path;
 String md = """
         # Release notes
 
-        GraphCompose **1.8** ships *themeable* Markdown rendering.
+        GraphCompose **1.9** ships *themeable* Markdown rendering.
 
         - Headings, lists and `inline code`
         - Syntax-highlighted code blocks
@@ -114,7 +114,42 @@ MarkdownComposer composer = MarkdownComposer.create(DefaultMarkdownTheme.light()
 composer.render(md).writePdf(Path.of("release-notes.pdf"));
 // or: byte[] pdf = composer.render(md).toPdfBytes();
 //     composer.render(md).writePdf(outputStream);
+
+// Render a Markdown *file* directly — reads UTF-8 and resolves relative images
+// (e.g. ![](diagram.png)) against the file's own folder:
+composer.renderFile(Path.of("docs/guide.md")).writePdf(Path.of("guide.pdf"));
 ```
+
+## Usage at a glance
+
+One composer, four ways in, three ways out. A composer is immutable and thread-safe —
+build it once and reuse it.
+
+| Take this in | Call | Notes |
+|---|---|---|
+| A Markdown **string** | `composer.render(String)` | `null` is treated as empty |
+| A Markdown **file** | `composer.renderFile(Path)` | reads UTF-8; resolves relative images (`![](pic.png)`) against the file's own folder; throws `IOException` |
+| A parsed Flexmark **`Document`** | `composer.render(Document)` | bring your own parser/extensions; `:::` blocks are *not* extracted on this path |
+| A hand-built **`MarkdownDocument`** | `composer.render(MarkdownDocument)` | the stable semantic-model hand-off point |
+
+Each returns a `Rendered`, which writes the PDF three ways (all throw `DocumentRenderingException`):
+
+| Get this out | Call |
+|---|---|
+| Write to a **file** | `rendered.writePdf(Path)` |
+| Stream to an **`OutputStream`** | `rendered.writePdf(OutputStream)` |
+| In-memory **`byte[]`** | `rendered.toPdfBytes()` |
+
+```java
+MarkdownComposer composer = MarkdownComposer.create(GitHubTheme.dark());
+composer.renderFile(Path.of("doc.md")).writePdf(Path.of("doc.pdf"));   // file → PDF
+byte[] bytes = composer.render("# Hello").toPdfBytes();                 // string → bytes
+```
+
+Pick the look by passing a theme to `create(...)`: `DefaultMarkdownTheme.light()` / `.dark()`,
+or a ready-made pack from `io.github.demchaav.markdown.theme.packs` — `GitHubTheme`,
+`AcademicTheme`, `MinimalTheme`, `BusinessReportTheme`. No Java at all? The
+[`gcmd` CLI](#command-line-cli) renders a file straight from the shell.
 
 ## Command-line (CLI)
 
@@ -171,10 +206,12 @@ published library artifact.
 ## What renders today
 
 Headings (h1–h6), paragraphs with inline **bold** / *italic* / ~~strikethrough~~ /
-`inline code` / links (plus **bare-URL autolinking**), ordered & unordered (nested)
-lists, **task lists**,
+`inline code` (rendered on a rounded GitHub-style chip) / links (plus **bare-URL
+autolinking** and clickable **`[text](#heading)` internal links**), ordered & unordered
+(nested) lists, **task lists**,
 **syntax-highlighted** fenced code blocks, blockquotes, horizontal rules, images,
-**GFM tables** (with per-column alignment), **footnotes**, **GitHub-style alerts**
+**GFM tables** (with per-column alignment), **footnotes** (clickable & bidirectional),
+**GitHub-style alerts**
 (`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`), **emoji
 shortcodes** (`:rocket:`), **YAML front matter** (a `---` … `---` title block), and
 `:::` custom blocks (e.g. callouts).
@@ -189,7 +226,11 @@ stars `⭐` — render as **native vector shapes** in their own colour (no font,
 instead of a missing-glyph `?`.
 
 Headings also become a **navigable PDF outline** — the viewer's bookmark/outline pane
-mirrors the document's heading tree.
+mirrors the document's heading tree — and each declares a **GitHub-style anchor**, so
+`[text](#heading)` links jump straight to it as native PDF go-to actions (footnote markers
+jump to their note and back the same way). A standalone **`[TOC]`** (or `[[_TOC_]]`) line
+expands into an **auto-generated, clickable table of contents** — one link per heading,
+nested by level — that you can drop anywhere, including above the headings it lists.
 
 Content the library does not model (raw HTML blocks, inline HTML) is **surfaced as raw
 text rather than silently dropped**; `MarkdownComposer.builder().strictMode(true)`

@@ -5,7 +5,6 @@ import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -28,21 +27,19 @@ public final class RenderMarkdownFileExample {
     }
 
     public static void main(String[] args) throws Exception {
-        String markdown;
+        MarkdownComposer composer = MarkdownComposer.create(DefaultMarkdownTheme.light());
         Path output;
 
         if (args.length >= 1) {
             Path input = Path.of(args[0]);
-            markdown = Files.readString(input, StandardCharsets.UTF_8);
             output = Path.of(args.length >= 2 ? args[1] : stripExtension(input) + ".pdf");
+            // renderFile reads the file (UTF-8) and resolves relative images against its own directory.
+            composer.renderFile(input).writePdf(output);
         } else {
-            markdown = bundledSample();
+            // No file given: render the bundled classpath sample (a resource stream, not a Path).
             output = Path.of("sample.pdf");
+            composer.render(bundledSample()).writePdf(output);
         }
-
-        MarkdownComposer.create(DefaultMarkdownTheme.light())
-                .render(markdown)
-                .writePdf(output);
 
         System.out.println("Wrote " + output.toAbsolutePath());
     }

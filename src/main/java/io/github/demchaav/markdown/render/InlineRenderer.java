@@ -6,6 +6,7 @@ import com.demcha.compose.document.node.DocumentLinkOptions;
 import com.demcha.compose.document.node.InlineImageAlignment;
 import com.demcha.compose.font.FontName;
 import com.demcha.compose.document.style.DocumentColor;
+import com.demcha.compose.document.style.DocumentInsets;
 import com.demcha.compose.document.style.DocumentTextDecoration;
 import com.demcha.compose.document.style.DocumentTextStyle;
 import io.github.demchaav.markdown.extension.EmojiResolver;
@@ -49,6 +50,11 @@ public final class InlineRenderer {
 
     /** An image resolver that resolves nothing — inline images then fall back to their alt text. */
     private static final ImageResolver NO_IMAGES = source -> Optional.empty();
+
+    /** Inline-code chip corner radius, mirroring the engine's {@code RichText.code(...)} default. */
+    private static final double CODE_CHIP_RADIUS = 3.0;
+    /** Inline-code chip padding (vertical, horizontal), mirroring the engine default. */
+    private static final DocumentInsets CODE_CHIP_PADDING = DocumentInsets.symmetric(1.0, 4.0);
 
     private final EmojiResolver emojiResolver;
     private final ImageResolver imageResolver;
@@ -227,6 +233,7 @@ public final class InlineRenderer {
         FontName fontName = family.resolve(decor.bold(), decor.italic());
 
         if (decor.linkUrl() != null) {
+            String url = decor.linkUrl();
             DocumentTextDecoration decoration = base.underlineLinks()
                     ? DocumentTextDecoration.UNDERLINE
                     : DocumentTextDecoration.DEFAULT;
@@ -236,16 +243,21 @@ public final class InlineRenderer {
                     .color(base.linkColor())
                     .decoration(decoration)
                     .build();
-            DocumentLinkOptions options = linkOptionsOrNull(decor.linkUrl());
+            DocumentLinkOptions options = linkOptionsOrNull(url);
+            String anchor = internalAnchor(url);
             if (!code && EmojiShapes.contains(text)) {
                 // A geometric emoji inside link text must still become a shape (not a missing
                 // glyph); the surrounding words keep the link annotation.
                 EmojiShapes.append(rich, text, linkStyle, size, options);
+            } else if (anchor != null) {
+                // [text](#heading): a native in-document jump to the heading's anchor.
+                rich.linkTo(text, linkStyle, anchor);
             } else if (options != null) {
                 rich.with(text, linkStyle, options);
             } else {
-                // Relative / anchor / schemeless href: the engine only annotates absolute-URI
-                // links, so render link-styled text without an annotation rather than crash.
+                // Relative / schemeless / unresolvable-anchor href: the engine only annotates
+                // absolute-URI or known-anchor links, so render link-styled text without an
+                // annotation rather than crash.
                 rich.style(text, linkStyle);
             }
             return;
@@ -261,13 +273,31 @@ public final class InlineRenderer {
                 .color(color)
                 .decoration(decoration)
                 .build();
-        // Geometric emoji (🔴 🟩 ⭐ …) have no glyph in PDF fonts and would render as "?";
-        // map them to native inline vector shapes. Code stays verbatim (Markdown rule).
-        if (!code && EmojiShapes.contains(text)) {
+        if (EmojiShapes.contains(text)) {
+            // Geometric emoji (🔴 🟩 ⭐ …) have no glyph in PDF fonts and would render as "?";
+            // map them to native inline vector shapes — in inline code too (the chip background
+            // can't host a shape, so an emoji-bearing code span forgoes the chip rather than a "?").
             EmojiShapes.append(rich, text, style, size);
+        } else if (code && base.codeBackground() != null) {
+            // Inline code sits on a rounded, padded chip (the GitHub `code` look). The null guard is
+            // for a hand-built InlineStyle with no chip colour (theme-derived styles always set one).
+            rich.highlight(text, style, base.codeBackground(), CODE_CHIP_RADIUS, CODE_CHIP_PADDING);
         } else {
             rich.style(text, style);
         }
+    }
+
+    /**
+     * The anchor name for an in-document link href, or {@code null} if {@code url} is not a
+     * usable {@code #fragment}. The fragment is slugified the same way headings are, so both
+     * {@code #my-heading} and {@code #My Heading} resolve to a heading's anchor.
+     */
+    private static String internalAnchor(String url) {
+        if (url == null || url.length() < 2 || url.charAt(0) != '#') {
+            return null;
+        }
+        String slug = Slugs.slugify(url.substring(1));
+        return slug.isEmpty() ? null : slug;
     }
 
     /**
@@ -305,7 +335,10 @@ public final class InlineRenderer {
         return true;
     }
 
-    /** Emits a footnote reference as a small accent-coloured {@code [N]} on the baseline. */
+    /**
+     * Emits a footnote reference as a small accent-coloured {@code [N]} on the baseline,
+     * linked to the note's {@code fn-N} anchor so a click jumps to the definition.
+     */
     private void emitFootnoteRef(RichText rich, FootnoteRefRun ref, InlineStyle base) {
         DocumentTextStyle style = DocumentTextStyle.builder()
                 .fontName(base.family().resolve(false, false))
@@ -313,7 +346,7 @@ public final class InlineRenderer {
                 .color(base.linkColor())
                 .decoration(DocumentTextDecoration.DEFAULT)
                 .build();
-        rich.style("[" + ref.number() + "]", style);
+        rich.linkTo("[" + ref.number() + "]", style, "fn-" + ref.number());
     }
 
     /** Accumulated inline decoration state as the tree is walked. */

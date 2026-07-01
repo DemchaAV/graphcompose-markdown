@@ -68,7 +68,7 @@ public final class DefaultMarkdownTheme {
     private static TypographyTokens typography() {
         return new TypographyTokens(
                 FontFamily.SANS, FontFamily.SANS, FontFamily.MONO,
-                11.0, 9.5, 1.35,
+                11.0, 9.5, 1.4,
                 List.of(26.0, 21.0, 17.0, 14.0, 12.0, 11.0));
     }
 

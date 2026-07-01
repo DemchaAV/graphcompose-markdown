@@ -354,7 +354,18 @@ public final class FlexmarkAstMapper {
         if (first instanceof Image image && first.getNext() == null) {
             return new ImageNode(image.getUrl().toString(), image.getText().toString(), titleOrNull(image.getTitle()));
         }
+        // A standalone [TOC] / [[_TOC_]] line is a table-of-contents marker (an undefined
+        // reference otherwise rendered as literal text); the renderer expands it from the headings.
+        if (isTocMarker(paragraph)) {
+            return new TocNode();
+        }
         return new ParagraphNode(mapInlines(paragraph));
+    }
+
+    /** Whether a paragraph's whole text is a TOC marker ({@code [TOC]} or {@code [[_TOC_]]}, any case). */
+    private static boolean isTocMarker(Paragraph paragraph) {
+        String text = paragraph.getChars().toString().strip().toLowerCase(java.util.Locale.ROOT);
+        return text.equals("[toc]") || text.equals("[[_toc_]]");
     }
 
     private ListNode mapList(Node list, boolean ordered, int startNumber) {
