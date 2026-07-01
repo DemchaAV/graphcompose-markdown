@@ -34,6 +34,7 @@ From this `examples/` directory (use `../mvnw.cmd` on Windows):
 | `…examples.FooterExample` | A running footer with `Page N of M` page numbers (`FooterTokens.pageNumbers()`) | `footer.pdf` |
 | `…examples.PngExportExample` | Rasterize straight to PNG page images via `toImages(dpi)` — no PDF round-trip | `png-export-p*.png` |
 | `…examples.VectorEmojiExample` | `:shortcode:` emoji as crisp vector glyphs via the optional `graph-compose-emoji` artifact | `vector-emoji.pdf` |
+| `…examples.BookTocExample` | Book-style `[TOC]`: dot leaders + live page numbers via `BookTocRenderer` | `book-toc.pdf` |
 | `…examples.EmojiExample` | Emoji shortcodes → inline images via `ClasspathEmojiResolver` | `emoji.pdf` |
 | `…examples.FrontMatterExample` | A YAML `---` front-matter title block | `front-matter.pdf` |
 
