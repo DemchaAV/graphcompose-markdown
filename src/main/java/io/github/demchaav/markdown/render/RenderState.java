@@ -98,10 +98,10 @@ final class RenderState {
      * referenced in {@code content} whose anchor has not yet been placed, marking
      * it placed; or {@code null} if the content references no fresh footnote.
      *
-     * <p>One anchor is placed per footnote, at its first referencing block, so the
-     * note's back-link lands on the citation. A footnote referenced only inside a
-     * table cell or heading (which do not carry the back-anchor) keeps its forward
-     * link but no back-link.</p>
+     * <p>One anchor is placed per footnote, at its first referencing block (body
+     * paragraph, list item, or table cell), so the note's back-link lands on the
+     * citation. A footnote referenced only inside a heading keeps its forward link
+     * but no back-link — a heading's single anchor slot already carries its slug.</p>
      *
      * @param content the inline content of a block
      * @return the {@code fnref-N} anchor to place, or {@code null}

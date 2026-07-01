@@ -6,6 +6,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **Footnotes cited from table cells are bidirectional too.** Cell paragraphs bypass the
+  paragraph renderer, so a footnote first cited inside a table cell had a forward link but a
+  dead back-link; the `fnref-N` back-anchor is now placed on the citing cell as well (list items
+  were covered in 0.2.0). A footnote cited only inside a *heading* still keeps just its forward
+  link — a heading's single anchor slot already carries its navigation slug.
+
 ### Changed
 - **Renderer classes reorganised (source-compatible for most users).** The four largest built-in
   renderers moved from nested classes to top-level classes in the same package:

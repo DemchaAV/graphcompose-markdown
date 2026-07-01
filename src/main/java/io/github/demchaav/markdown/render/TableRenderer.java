@@ -58,7 +58,12 @@ public final class TableRenderer implements NodeRenderer<TableNode> {
             ColumnAlignment alignment = i < alignments.size() ? alignments.get(i) : ColumnAlignment.NONE;
             List<InlineNode> content = i < cells.size() ? cells.get(i).content() : List.of();
             RichText rich = ctx.inline().render(content, inlineStyle);
-            var paragraph = new ParagraphBuilder().rich(rich).align(textAlign(alignment)).build();
+            // Cell paragraphs bypass ParagraphRenderer, so place the footnote back-anchor here
+            // too — otherwise a footnote first cited in a table cell has a dead back-link.
+            // anchor(null) is a no-op on the builder.
+            String backAnchor = ctx.footnoteBackAnchor(content);
+            var paragraph = new ParagraphBuilder().rich(rich).align(textAlign(alignment))
+                    .anchor(backAnchor).build();
             DocumentTableStyle.Builder cellStyle = DocumentTableStyle.builder()
                     .padding(style.cellPadding())
                     .stroke(border)
