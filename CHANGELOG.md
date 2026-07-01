@@ -6,6 +6,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Running footer with page numbers — `FooterTokens`.** A new token group adds an optional page
+  footer whose `left`/`center`/`right` text may use the `{page}` / `{pages}` / `{date}` placeholders
+  the PDF backend substitutes per page. It is **disabled by default** (single-page/screen output is
+  unchanged); enable it with `tokens().withFooter(FooterTokens.pageNumbers())` for a centred
+  "Page N of M", or build a custom `FooterTokens` (text, font size, colour, `showOnFirstPage`).
+  Wired through the engine's `DocumentSession.footer(...)` / `DocumentPageNumbering`. Runnable
+  `FooterExample`.
+
 ## v0.2.0 — 2026-07-01
 
 ### Added

@@ -151,6 +151,15 @@ or a ready-made pack from `io.github.demchaav.markdown.theme.packs` — `GitHubT
 `AcademicTheme`, `MinimalTheme`, `BusinessReportTheme`. No Java at all? The
 [`gcmd` CLI](#command-line-cli) renders a file straight from the shell.
 
+Want **page numbers**? Footers are off by default; derive a theme with `FooterTokens`:
+
+```java
+MarkdownTheme t = DefaultMarkdownTheme.light();
+MarkdownTheme numbered = MarkdownTheme.builder(t)
+        .tokens(t.tokens().withFooter(FooterTokens.pageNumbers())) // centred "Page N of M"
+        .build();
+```
+
 ## Command-line (CLI)
 
 A standalone `cli/` module renders Markdown to PDF from the shell — no Java code
