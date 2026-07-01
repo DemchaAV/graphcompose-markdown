@@ -254,7 +254,15 @@ declares a **GitHub-style anchor**, so
 `[text](#heading)` links jump straight to it as native PDF go-to actions (footnote markers
 jump to their note and back the same way). A standalone **`[TOC]`** (or `[[_TOC_]]`) line
 expands into an **auto-generated, clickable table of contents** — one link per heading,
-nested by level — that you can drop anywhere, including above the headings it lists.
+nested by level — that you can drop anywhere, including above the headings it lists. Prefer
+a print-style contents page? Swap in the **book TOC** — dot leaders and **live page
+numbers**, resolved from the laid-out document:
+
+```java
+MarkdownTheme book = MarkdownTheme.builder(DefaultMarkdownTheme.light())
+        .renderer(TocNode.class, new BookTocRenderer("Contents"))
+        .build();
+```
 
 Content the library does not model (raw HTML blocks, inline HTML) is **surfaced as raw
 text rather than silently dropped**; `MarkdownComposer.builder().strictMode(true)`
