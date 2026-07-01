@@ -3,6 +3,9 @@ package io.github.demchaav.markdown.composer;
 import com.demcha.compose.GraphCompose;
 import com.demcha.compose.document.api.DocumentSession;
 import com.demcha.compose.document.exceptions.DocumentRenderingException;
+import com.demcha.compose.document.output.DocumentHeaderFooter;
+import com.demcha.compose.document.output.DocumentHeaderFooterZone;
+import com.demcha.compose.document.output.DocumentPageNumbering;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.extension.CustomBlockParser;
 import io.github.demchaav.markdown.extension.DefaultImageResolver;
@@ -16,6 +19,7 @@ import io.github.demchaav.markdown.render.RenderContext;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
 import io.github.demchaav.markdown.theme.MarkdownTheme;
 import io.github.demchaav.markdown.theme.style.MarkdownStyles;
+import io.github.demchaav.markdown.theme.tokens.FooterTokens;
 import io.github.demchaav.markdown.theme.tokens.PageTokens;
 
 import java.io.IOException;
@@ -316,6 +320,20 @@ public final class MarkdownComposer {
             DocumentColor surface = theme.tokens().colors().surface();
             if (surface != null) {
                 session.pageBackground(surface);
+            }
+            FooterTokens footer = theme.tokens().footer();
+            if (footer.enabled()) {
+                session.footer(DocumentHeaderFooter.builder()
+                        .zone(DocumentHeaderFooterZone.FOOTER)
+                        .leftText(footer.leftText())
+                        .centerText(footer.centerText())
+                        .rightText(footer.rightText())
+                        .fontSize((float) footer.fontSize())
+                        .textColor(footer.color())
+                        .numbering(DocumentPageNumbering.builder()
+                                .showOnFirstPage(footer.showOnFirstPage())
+                                .build())
+                        .build());
             }
             return session;
         }

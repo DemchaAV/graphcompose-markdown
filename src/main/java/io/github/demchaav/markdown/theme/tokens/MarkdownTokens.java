@@ -16,6 +16,7 @@ import java.util.Objects;
  * @param page        page geometry
  * @param syntax      code syntax-highlighting colours
  * @param alertColors per-variant alert / callout accent colours
+ * @param footer      running-footer configuration (disabled by default)
  */
 public record MarkdownTokens(
         ColorTokens colors,
@@ -24,7 +25,8 @@ public record MarkdownTokens(
         ShapeTokens shape,
         PageTokens page,
         SyntaxColors syntax,
-        AlertColors alertColors) {
+        AlertColors alertColors,
+        FooterTokens footer) {
 
     /** Validates every token group is present. */
     public MarkdownTokens {
@@ -35,6 +37,23 @@ public record MarkdownTokens(
         Objects.requireNonNull(page, "page");
         Objects.requireNonNull(syntax, "syntax");
         Objects.requireNonNull(alertColors, "alertColors");
+        Objects.requireNonNull(footer, "footer");
+    }
+
+    /**
+     * Creates tokens with a disabled footer (the default).
+     *
+     * @param colors      colour palette
+     * @param typography  fonts and the type scale
+     * @param spacing     gaps and paddings
+     * @param shape       corner radii and line weights
+     * @param page        page geometry
+     * @param syntax      code syntax-highlighting colours
+     * @param alertColors per-variant alert / callout accent colours
+     */
+    public MarkdownTokens(ColorTokens colors, TypographyTokens typography, SpacingTokens spacing,
+                          ShapeTokens shape, PageTokens page, SyntaxColors syntax, AlertColors alertColors) {
+        this(colors, typography, spacing, shape, page, syntax, alertColors, FooterTokens.disabled());
     }
 
     /**
@@ -73,7 +92,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withColors(ColorTokens newColors) {
-        return new MarkdownTokens(newColors, typography, spacing, shape, page, syntax, alertColors);
+        return new MarkdownTokens(newColors, typography, spacing, shape, page, syntax, alertColors, footer);
     }
 
     /**
@@ -83,7 +102,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withTypography(TypographyTokens newTypography) {
-        return new MarkdownTokens(colors, newTypography, spacing, shape, page, syntax, alertColors);
+        return new MarkdownTokens(colors, newTypography, spacing, shape, page, syntax, alertColors, footer);
     }
 
     /**
@@ -93,7 +112,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withSpacing(SpacingTokens newSpacing) {
-        return new MarkdownTokens(colors, typography, newSpacing, shape, page, syntax, alertColors);
+        return new MarkdownTokens(colors, typography, newSpacing, shape, page, syntax, alertColors, footer);
     }
 
     /**
@@ -103,7 +122,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withPage(PageTokens newPage) {
-        return new MarkdownTokens(colors, typography, spacing, shape, newPage, syntax, alertColors);
+        return new MarkdownTokens(colors, typography, spacing, shape, newPage, syntax, alertColors, footer);
     }
 
     /**
@@ -113,7 +132,7 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withSyntax(SyntaxColors newSyntax) {
-        return new MarkdownTokens(colors, typography, spacing, shape, page, newSyntax, alertColors);
+        return new MarkdownTokens(colors, typography, spacing, shape, page, newSyntax, alertColors, footer);
     }
 
     /**
@@ -123,6 +142,16 @@ public record MarkdownTokens(
      * @return a new {@code MarkdownTokens}
      */
     public MarkdownTokens withAlertColors(AlertColors newAlertColors) {
-        return new MarkdownTokens(colors, typography, spacing, shape, page, syntax, newAlertColors);
+        return new MarkdownTokens(colors, typography, spacing, shape, page, syntax, newAlertColors, footer);
+    }
+
+    /**
+     * Returns a copy with a different running footer.
+     *
+     * @param newFooter the replacement footer configuration
+     * @return a new {@code MarkdownTokens}
+     */
+    public MarkdownTokens withFooter(FooterTokens newFooter) {
+        return new MarkdownTokens(colors, typography, spacing, shape, page, syntax, alertColors, newFooter);
     }
 }
