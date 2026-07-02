@@ -436,7 +436,8 @@ See [examples/README.md](examples/README.md) for the full list.
 
 ## Documentation
 
-- **[User manual](assets/readme/manual.md)** → **[manual.pdf](assets/readme/manual.pdf)** — the
+- **[User manual](assets/readme/manual.md)** → **[manual.pdf](assets/readme/manual.pdf)**
+  / **[manual-dark.pdf](assets/readme/manual-dark.pdf)** (same source, dark theme) — the
   full guide, written in Markdown and rendered to PDF *by the library itself*: book-style
   contents with live page numbers, "Page N of M" footer, vector emoji, smart punctuation —
   every feature it documents is demonstrated on its own pages.

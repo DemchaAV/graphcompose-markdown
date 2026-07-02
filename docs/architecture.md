@@ -1,5 +1,8 @@
 # Architecture
 
+> New here? The [user manual](../assets/readme/manual.md) walks the whole feature set in
+> one self-rendered document ([PDF](../assets/readme/manual.pdf)).
+
 graphcompose-markdown is a pipeline of small, decoupled stages. Each stage hands the
 next a stable data structure, so any stage can be swapped or driven directly.
 

@@ -29,10 +29,20 @@ class ManualTest {
 
     /** The composer the manual's "How this PDF was made" section shows — kept in lockstep. */
     static MarkdownComposer manualComposer() {
-        MarkdownTheme base = DefaultMarkdownTheme.light();
+        return manualComposer(DefaultMarkdownTheme.light());
+    }
+
+    /** The dark twin: the same document, reskinned — the committed {@code manual-dark.pdf}. */
+    static MarkdownComposer darkManualComposer() {
+        return manualComposer(DefaultMarkdownTheme.dark());
+    }
+
+    private static MarkdownComposer manualComposer(MarkdownTheme base) {
         MarkdownTheme manualTheme = MarkdownTheme.builder(base)
                 .renderer(TocNode.class, new BookTocRenderer())
-                .tokens(base.tokens().withFooter(FooterTokens.pageNumbers()))
+                .tokens(base.tokens().withFooter(
+                        // The footer picks up the theme's muted ink so it reads on both surfaces.
+                        FooterTokens.pageNumbers().withColor(base.tokens().colors().muted())))
                 .imageResolver(new DefaultImageResolver(BASE))
                 .build();
         return MarkdownComposer.builder()
@@ -70,6 +80,21 @@ class ManualTest {
 
             // Footnote section rendered.
             assertThat(text).contains("Notes");
+        }
+    }
+
+    @Test
+    void theDarkManualRendersTheSameDocumentReskinned() throws Exception {
+        byte[] light = manualComposer().renderFile(BASE.resolve("manual.md")).toPdfBytes();
+        byte[] dark = darkManualComposer().renderFile(BASE.resolve("manual.md")).toPdfBytes();
+
+        try (PDDocument lightDoc = Loader.loadPDF(light); PDDocument darkDoc = Loader.loadPDF(dark)) {
+            // Same content, same structure — only the skin differs.
+            assertThat(darkDoc.getNumberOfPages()).isEqualTo(lightDoc.getNumberOfPages());
+            assertThat(darkDoc.getDocumentCatalog().getPageMode()).isEqualTo(PageMode.USE_OUTLINES);
+            String text = new PDFTextStripper().getText(darkDoc);
+            assertThat(text).contains("GraphCompose Markdown")
+                    .contains("Page 1 of " + darkDoc.getNumberOfPages());
         }
     }
 
