@@ -436,6 +436,10 @@ See [examples/README.md](examples/README.md) for the full list.
 
 ## Documentation
 
+- **[User manual](assets/readme/manual.md)** → **[manual.pdf](assets/readme/manual.pdf)** — the
+  full guide, written in Markdown and rendered to PDF *by the library itself*: book-style
+  contents with live page numbers, "Page N of M" footer, vector emoji, smart punctuation —
+  every feature it documents is demonstrated on its own pages.
 - **[Architecture](docs/architecture.md)** — the pipeline, the semantic model, and why
   the parser is decoupled.
 - **[Theming](docs/theming.md)** — tokens, component styles, deriving themes, packs,
