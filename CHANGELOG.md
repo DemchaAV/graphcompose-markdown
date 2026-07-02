@@ -33,6 +33,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
   needs the import updated. `BuiltinRenderers` drops from ~750 to ~440 lines.
 
 ### Added
+- **Self-rendered user manual, in light and dark.** `assets/readme/manual.md` is a complete
+  guide — install, quick start, a live tour of every feature, theming, navigation/chrome,
+  extension seams, CLI — rendered **by the library itself** to `manual.pdf` and, from the same
+  source through `DefaultMarkdownTheme.dark()`, `manual-dark.pdf`: book-style contents with
+  live page numbers, "Page N of M" footer, auto-opened outline, vector emoji, smart
+  punctuation. `ManualTest` keeps the committed PDFs, the test composer and the manual's own
+  "How this PDF was made" snippet in lockstep. The docs guides (`architecture`, `theming`,
+  `custom-renderers`) now cross-link the manual and cover `FooterTokens` and the
+  `BookTocRenderer` swap.
 - **Opt-in smart punctuation — `MarkdownComposer.builder().smartPunctuation(true)`.** Typographic
   replacements at parse time: straight quotes become curly quotes (nested formatting inside the
   quotes survives), apostrophes curl (`don't` → `don’t`), `--` becomes an en-dash, `---` an

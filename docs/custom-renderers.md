@@ -1,5 +1,8 @@
 # Custom renderers
 
+> The [user manual](../assets/readme/manual.md) is rendered with a swapped renderer —
+> its page-numbered contents is `BookTocRenderer` replacing the default `[TOC]` renderer.
+
 A `NodeRenderer` decides *how* one kind of semantic node becomes a GraphCompose
 document fragment. Override one to restyle a single element; bundle a set into a
 `RendererPack` to ship a whole behaviour layer; register one against a `:::` type to
@@ -160,3 +163,18 @@ concatenation of all token texts must equal the input verbatim (the renderer rel
 this to preserve whitespace and indentation).
 
 See also: [architecture.md](architecture.md) · [theming.md](theming.md)
+
+## Swapping a built-in renderer
+
+Every built-in is replaceable per node type. The library ships one such alternative
+itself: `BookTocRenderer` turns the `[TOC]` marker into a print-style contents page with
+dot leaders and live page numbers, in place of the default clickable link list:
+
+```java
+MarkdownTheme book = MarkdownTheme.builder(DefaultMarkdownTheme.light())
+        .renderer(TocNode.class, new BookTocRenderer("Contents"))
+        .build();
+```
+
+The same seam accepts your own renderer for any node type — tables, code blocks,
+headings — while every other component is reused.

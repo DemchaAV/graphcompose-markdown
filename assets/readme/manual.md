@@ -258,4 +258,8 @@ MarkdownComposer.builder()
         .writePdf(Path.of("assets", "readme", "manual.pdf"));
 ```
 
+A dark twin --- `manual-dark.pdf` --- is rendered from this **same source file** with
+`DefaultMarkdownTheme.dark()`: swap one theme object, reskin the whole document. That is
+the separation of content and appearance doing its job.
+
 Both libraries are MIT-licensed. Happy composing. :tada:

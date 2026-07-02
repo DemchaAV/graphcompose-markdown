@@ -1,5 +1,10 @@
 # Theming
 
+> Want to *see* every theming feature in one rendered document? Open the
+> [user manual](../assets/readme/manual.md) and its PDFs —
+> [light](../assets/readme/manual.pdf) / [dark](../assets/readme/manual-dark.pdf) are the
+> **same Markdown source** through two themes.
+
 A `MarkdownTheme` decides how a document looks. It is built from three layers so you
 override exactly what you need and reuse everything else.
 
@@ -126,3 +131,17 @@ names, the rich code path is intended for regular-weight code.
 local and classpath paths; network fetching is opt-in (implement your own resolver).
 
 See also: [architecture.md](architecture.md) · [custom-renderers.md](custom-renderers.md)
+
+## Page chrome: the running footer
+
+`FooterTokens` is the token group for an optional page footer. It is **disabled by
+default**; enable the ready-made "Page N of M" preset, or build a custom one
+(`left`/`center`/`right` templates with `{page}`, `{pages}`, `{date}` placeholders,
+font size, colour, `showOnFirstPage`):
+
+```java
+MarkdownTheme t = DefaultMarkdownTheme.light();
+MarkdownTheme numbered = MarkdownTheme.builder(t)
+        .tokens(t.tokens().withFooter(FooterTokens.pageNumbers()))
+        .build();
+```
