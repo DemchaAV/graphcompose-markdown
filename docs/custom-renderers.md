@@ -178,3 +178,11 @@ MarkdownTheme book = MarkdownTheme.builder(DefaultMarkdownTheme.light())
 
 The same seam accepts your own renderer for any node type — tables, code blocks,
 headings — while every other component is reused.
+
+A heading or TOC renderer needs the anchors the built-ins plan up front (so its links stay
+navigable). Those are on `RenderContext`: `ctx.headingSlug(headingNode)` returns the planned,
+document-unique slug for a heading — use it rather than `ctx.headingAnchor(title)`, which
+allocates a *fresh* slug and would desync your anchor from what `[TOC]` and `[text](#slug)`
+jump to — and `ctx.tocEntries()` returns the document's headings (level, text, slug) as public
+`TocEntry` records for a custom `NodeRenderer<TocNode>` to lay out. `BookTocRenderer` is built on
+exactly these.

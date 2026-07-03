@@ -68,4 +68,24 @@ public record AlertColors(
                 DocumentColor.rgb(220, 38, 38),    // callout error / danger
                 DocumentColor.rgb(22, 163, 74));   // callout success / tip
     }
+
+    /**
+     * A palette tuned for dark surfaces. The light {@link #defaultPalette()} accents — the amber
+     * warning especially — fall below a readable contrast on a near-black page, which is the very
+     * case this token group exists to fix. These mirror GitHub's dark-mode alert accents.
+     *
+     * @return the dark alert/callout palette
+     */
+    public static AlertColors defaultDark() {
+        return new AlertColors(
+                DocumentColor.rgb(68, 147, 248),   // note — blue
+                DocumentColor.rgb(63, 185, 80),    // tip — green
+                DocumentColor.rgb(171, 125, 248),  // important — purple
+                DocumentColor.rgb(210, 153, 34),   // warning — amber
+                DocumentColor.rgb(248, 81, 73),    // caution — red
+                DocumentColor.rgb(88, 166, 255),   // callout info / note
+                DocumentColor.rgb(210, 153, 34),   // callout warning / caution
+                DocumentColor.rgb(248, 81, 73),    // callout error / danger
+                DocumentColor.rgb(63, 185, 80));   // callout success / tip
+    }
 }

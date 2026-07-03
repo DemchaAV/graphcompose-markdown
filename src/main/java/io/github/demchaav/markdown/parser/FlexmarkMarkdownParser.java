@@ -53,6 +53,17 @@ public final class FlexmarkMarkdownParser {
             extensions.add(TypographicExtension.create());
         }
         options.set(Parser.EXTENSIONS, extensions);
+        // Pin the tables extension to GitHub-Flavored-Markdown semantics. Flexmark's defaults
+        // otherwise accept column spans (`| a || b |`), multiple header rows and trailing
+        // `[caption]` lines — none of which are GFM — and the mapper silently drops that extra
+        // structure, so a document could lose cells or a whole caption without warning.
+        options.set(TablesExtension.COLUMN_SPANS, false)
+                .set(TablesExtension.MIN_HEADER_ROWS, 1)
+                .set(TablesExtension.MAX_HEADER_ROWS, 1)
+                .set(TablesExtension.APPEND_MISSING_COLUMNS, true)
+                .set(TablesExtension.DISCARD_EXTRA_COLUMNS, true)
+                .set(TablesExtension.WITH_CAPTION, false)
+                .set(TablesExtension.HEADER_SEPARATOR_COLUMN_MATCH, true);
         this.parser = Parser.builder(options).build();
     }
 

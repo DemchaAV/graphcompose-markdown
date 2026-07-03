@@ -192,13 +192,29 @@ public final class RenderContext {
         return state.tocEntries().stream().anyMatch(entry -> !entry.text().isEmpty());
     }
 
-    /** @return the planned slug anchor for a heading, or {@code null} if it was not planned */
-    String headingSlug(HeadingNode node) {
+    /**
+     * Returns the anchor slug that {@link #planHeadings} assigned to this heading node — the same
+     * slug the built-in heading renderer declares and that {@code [TOC]} / {@code [text](#slug)}
+     * links resolve to. A custom {@code NodeRenderer<HeadingNode>} should call this (rather than
+     * {@link #headingAnchor(String)}, which allocates a <em>fresh</em> slug and would desync the
+     * anchor from the planned links) to stay navigable.
+     *
+     * @param node the heading node being rendered
+     * @return the planned slug, or {@code null} if the heading was not part of the planned document
+     */
+    public String headingSlug(HeadingNode node) {
         return state.slugFor(node);
     }
 
-    /** @return the document's headings as ordered table-of-contents entries */
-    List<TocEntry> tocEntries() {
+    /**
+     * Returns the document's headings as ordered table-of-contents entries, meaningful after
+     * {@link #planHeadings}. Exposed so a custom {@code NodeRenderer<TocNode>} (for example a
+     * page-numbered book contents) can build its own contents from the same planned entries the
+     * default {@code [TOC]} renderer uses.
+     *
+     * @return the planned TOC entries in document order (empty before planning)
+     */
+    public List<TocEntry> tocEntries() {
         return state.tocEntries();
     }
 

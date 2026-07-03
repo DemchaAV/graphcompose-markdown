@@ -419,7 +419,7 @@ public final class BuiltinRenderers {
             if (variant == null) {
                 return fallback;
             }
-            switch (variant.toLowerCase()) {
+            switch (variant.toLowerCase(java.util.Locale.ROOT)) {
                 case "warning":
                 case "caution":
                     return colors.calloutWarning();

@@ -76,7 +76,7 @@ public final class DefaultImageResolver implements ImageResolver {
         if (source == null || source.isBlank()) {
             return Optional.empty();
         }
-        String lower = source.toLowerCase();
+        String lower = source.toLowerCase(java.util.Locale.ROOT);
         if (lower.startsWith("http://") || lower.startsWith("https://")) {
             return Optional.empty(); // remote loading is opt-in via a custom resolver
         }

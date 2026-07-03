@@ -30,6 +30,9 @@ final class RenderState {
     /** Base slug -> number of times it has been assigned, for GitHub-style de-duplication. */
     private final Map<String, Integer> slugCounts = new HashMap<>();
 
+    /** Every slug already handed out, so a generated {@code -N} can never collide with a later heading. */
+    private final Set<String> assignedSlugs = new HashSet<>();
+
     /** Footnote numbers whose {@code fnref-N} back-anchor has already been placed. */
     private final Set<Integer> placedFootnoteRefs = new HashSet<>();
 
@@ -84,13 +87,16 @@ final class RenderState {
             base = "section";
         }
         Integer seen = slugCounts.get(base);
-        if (seen == null) {
-            slugCounts.put(base, 0);
-            return base;
+        int next = seen == null ? 0 : seen + 1;
+        String candidate = next == 0 ? base : base + "-" + next;
+        // Bump past any slug already taken — e.g. headings "Foo", "Foo", "Foo 1" would all want
+        // "foo-1"; keep incrementing so every heading still gets a document-unique anchor.
+        while (!assignedSlugs.add(candidate)) {
+            next++;
+            candidate = base + "-" + next;
         }
-        int next = seen + 1;
         slugCounts.put(base, next);
-        return base + "-" + next;
+        return candidate;
     }
 
     /**

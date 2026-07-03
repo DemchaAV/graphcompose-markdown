@@ -105,7 +105,7 @@ public final class CustomBlockParser {
             Matcher open = OPEN.matcher(line.strip());
             if (isOpen(line) && open.matches()) {
                 flushNormal(normal, result, footnoteNumbers);
-                String type = open.group(1).toLowerCase();
+                String type = open.group(1).toLowerCase(java.util.Locale.ROOT);
                 String variant = open.group(2);
 
                 int depth = 1;
