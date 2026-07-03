@@ -11,7 +11,7 @@ From the repository root:
 ./mvnw -B -ntp -DskipTests install
 ```
 
-This installs `io.github.demchaav:graph-compose-markdown:0.1.0-SNAPSHOT` into your
+This installs `io.github.demchaav:graph-compose-markdown:0.3.0-SNAPSHOT` into your
 local Maven repository, which these examples depend on.
 
 ## 2. Run an example

@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 /**
@@ -31,7 +32,7 @@ import java.util.concurrent.Callable;
 @Command(
         name = "gcmd",
         mixinStandardHelpOptions = true,
-        version = "graph-compose-markdown CLI 0.2.0-SNAPSHOT",
+        versionProvider = MarkdownCli.ModuleVersionProvider.class,
         sortOptions = false,
         description = "Render a Markdown file to a themed PDF (powered by graph-compose-markdown).")
 public final class MarkdownCli implements Callable<Integer> {
@@ -174,6 +175,24 @@ public final class MarkdownCli implements Callable<Integer> {
                 return BusinessReportTheme.light();
             default:
                 return null;
+        }
+    }
+
+    /**
+     * Supplies {@code --version} from the Maven-filtered {@code gcmd-cli.properties} resource so
+     * the reported version tracks the module {@code <version>} automatically. Replaces a hard-coded
+     * string that silently drifted to a stale {@code 0.2.0-SNAPSHOT} at the v0.2.0 tag.
+     */
+    static final class ModuleVersionProvider implements CommandLine.IVersionProvider {
+        @Override
+        public String[] getVersion() throws IOException {
+            Properties props = new Properties();
+            try (var in = MarkdownCli.class.getResourceAsStream("/gcmd-cli.properties")) {
+                if (in != null) {
+                    props.load(in);
+                }
+            }
+            return new String[] {"graph-compose-markdown CLI " + props.getProperty("version", "unknown")};
         }
     }
 
