@@ -45,6 +45,10 @@ The library is a single Maven dependency; the GraphCompose engine comes in trans
 </dependency>
 ```
 
+> [!NOTE]
+> Not yet on Maven Central (first release pending). Until then, build from source
+> (`./mvnw install`) and depend on the snapshot, or consume a tagged version via JitPack.
+
 Two **optional** companion artifacts unlock extras; add them only if you want them:
 
 | Artifact | What it adds |

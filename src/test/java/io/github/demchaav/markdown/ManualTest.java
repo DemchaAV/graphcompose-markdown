@@ -12,6 +12,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PageMode;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.nio.file.Path;
 
@@ -49,6 +50,19 @@ class ManualTest {
                 .theme(manualTheme)
                 .smartPunctuation(true)
                 .build();
+    }
+
+    /**
+     * Regenerates the committed {@code manual.pdf} / {@code manual-dark.pdf} from {@code manual.md}
+     * using the exact composers the other tests assert against — the only supported way to refresh
+     * the checked-in PDFs so they never drift from the source. Opt-in (it writes into the repo):
+     * <pre>./mvnw test -Dtest=ManualTest#regeneratesTheCommittedManualPdfs -Dgcmd.regenerateManual=true -pl .</pre>
+     */
+    @Test
+    @EnabledIfSystemProperty(named = "gcmd.regenerateManual", matches = "true")
+    void regeneratesTheCommittedManualPdfs() throws Exception {
+        manualComposer().renderFile(BASE.resolve("manual.md")).writePdf(BASE.resolve("manual.pdf"));
+        darkManualComposer().renderFile(BASE.resolve("manual.md")).writePdf(BASE.resolve("manual-dark.pdf"));
     }
 
     @Test
