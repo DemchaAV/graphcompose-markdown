@@ -13,6 +13,35 @@ and the project follows [Semantic Versioning](https://semver.org/).
   commit's detached-module build; a release-prep commit can no longer tag with the drift.
 
 ### Fixed
+- **Tables are pinned to GitHub-Flavored-Markdown parity — no more silent content loss.** The
+  Flexmark tables extension ran with its permissive defaults (column spans, multiple header rows,
+  trailing `[caption]` lines), all of which the mapper dropped without a trace: a `[caption]` after
+  a table vanished, and a header-less table mapped to nothing — its whole body disappeared, invisible
+  even to strict mode. Tables now parse as GFM (`COLUMN_SPANS=false`, one header row,
+  `WITH_CAPTION=false`, append/discard ragged columns), and a header-less table surfaces its source
+  as unsupported content (rejected in strict mode, shown verbatim otherwise) rather than being swallowed.
+- **List-item continuation blocks keep the item's indent.** A second paragraph, code block or quote
+  inside a list item bypassed the marker paragraph's margin and rendered flush against the page margin
+  — left of its own bullet. Continuation blocks now carry the item's left indent (nested lists, which
+  compute their own indent, are unchanged).
+- **Undefined footnote references render as their literal source.** A `[^label]` with no matching
+  definition was still assigned a number, leaving a dangling superscript and a gap in the footnote run.
+  It now renders as literal text (the CommonMark behaviour), mirroring how undefined link references are
+  already handled; defined footnotes number and back-link exactly as before.
+- **Heading anchors are always document-unique.** The GitHub-style de-duplicator could hand out the
+  same `-N` slug twice when a later heading's own text slugified to an already-generated anchor (e.g.
+  headings `Foo`, `Foo`, `Foo 1`); it now bumps past any taken slug so every heading keeps a unique
+  anchor that `[TOC]` and `[text](#slug)` links resolve to.
+- **Built-in dark themes ship a dark-tuned alert palette.** `DefaultMarkdownTheme.dark()` and
+  `GitHubTheme.dark()` inherited the light amber/blue alert accents, which fell below a readable
+  contrast on the near-black surface. A new `AlertColors.defaultDark()` (mirroring
+  `SyntaxColors.defaultDark()`) gives GitHub-dark-mode accents; both dark themes now use it.
+- **Locale-independent lowercasing.** Custom-block type dispatch, `:::` callout variants, image-URL
+  scheme checks and inline-HTML detection used `String.toLowerCase()` without a locale, so under a
+  Turkish locale `:::INFO` lowercased to `ınfo` and missed its handler. All now use `Locale.ROOT`.
+- **CLI `--version` tracks the module version.** It hard-coded `0.2.0-SNAPSHOT` and had already drifted
+  stale at the v0.2.0 tag; it now reads the Maven-filtered module version, so it can never diverge from
+  the pom the version-lockstep guard already enforces.
 - **Footnotes cited from table cells are bidirectional too.** Cell paragraphs bypass the
   paragraph renderer, so a footnote first cited inside a table cell had a forward link but a
   dead back-link; the `fnref-N` back-anchor is now placed on the citing cell as well (list items
@@ -20,6 +49,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
   link — a heading's single anchor slot already carries its navigation slug.
 
 ### Changed
+- **The custom-renderer seam is now truly open for headings and the table of contents.** The docs
+  advertise swapping the renderer for *any* node type, but a third-party `NodeRenderer<HeadingNode>`
+  or `NodeRenderer<TocNode>` outside the render package had no way to reach the planned heading slugs:
+  it was forced to call `RenderContext.headingAnchor(title)`, which allocates a *fresh* slug and
+  silently desynced the anchor from what `[TOC]` and `[text](#slug)` link to. `RenderContext.headingSlug(HeadingNode)`
+  and `RenderContext.tocEntries()` are now `public`, and `TocEntry` is a public record, so a custom
+  heading/TOC renderer can declare the same anchors the built-ins do and stay navigable.
 - **The HTML-entity decoder now handles curly-quote and guillemet entities (all modes).** A
   literal `&rsquo;` / `&ldquo;` / `&laquo;` … in the Markdown source now decodes to its character
   (`’` `“` `«`) instead of rendering as the raw entity text. This applies regardless of the
@@ -48,14 +84,6 @@ and the project follows [Semantic Versioning](https://semver.org/).
   em-dash, `...` (and spaced `. . .`) an ellipsis, and `<<text>>` becomes `«text»` guillemets.
   Off by default — GitHub does not smart-quote — and code spans / code blocks always stay
   verbatim. Backed by `flexmark-ext-typographic`.
-- **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
-  the default `[TOC]` link list: swap the `TocNode` renderer
-  (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
-  the marker renders as dot-leader contents rows — "Introduction ….. 3" — with **page numbers
-  resolved automatically from the laid-out document** (the engine's `addTableOfContents`; no
-  manual two-pass) and every label a clickable jump. Heading nesting indents the label; an
-  optional title row; empty-heading and no-heading documents degrade exactly like the default
-  renderer. Runnable `BookTocExample` (paired with the page-number footer).
 - **Book-style page-numbered table of contents — `BookTocRenderer`.** An opt-in alternative to
   the default `[TOC]` link list: swap the `TocNode` renderer
   (`MarkdownTheme.builder(base).renderer(TocNode.class, new BookTocRenderer("Contents"))`) and
@@ -373,5 +401,6 @@ are grouped by area.
   theme-composition tests; and `EngineRobustnessTest` (code-fence `:::`,
   unsupported-content handling, strict mode, theme immutability).
 
-[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.1.0

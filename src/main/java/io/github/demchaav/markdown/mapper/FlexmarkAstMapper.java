@@ -246,7 +246,9 @@ public final class FlexmarkAstMapper {
 
     private void assignFootnoteNumbers(Node node, Map<String, Integer> numbers, int[] next) {
         for (Node child = node.getFirstChild(); child != null; child = child.getNext()) {
-            if (child instanceof Footnote footnote) {
+            if (child instanceof Footnote footnote && footnote.getFootnoteBlock() != null) {
+                // Only a DEFINED [^label] gets a number; an undefined one renders as literal text
+                // (below), so numbering it would leave a dangling superscript and a gap in the run.
                 String label = footnoteLabel(footnote.getText());
                 if (!label.isEmpty() && !numbers.containsKey(label)) {
                     numbers.put(label, next[0]++);
@@ -343,8 +345,13 @@ public final class FlexmarkAstMapper {
             }
         }
 
-        // A GFM table is only valid with a header (which defines the columns).
-        return alignments.isEmpty() ? null : new TableNode(alignments, header, bodyRows);
+        // A GFM table is only valid with a header (which defines the columns). Rather than
+        // dropping a header-less table to null — which would silently swallow its whole body,
+        // invisible even to strict mode — surface its source like any other unmodelled block.
+        if (alignments.isEmpty()) {
+            return new UnsupportedBlockNode(table.getNodeName(), table.getChars().toString());
+        }
+        return new TableNode(alignments, header, bodyRows);
     }
 
     private List<TableCellNode> mapRow(TableRow row) {
@@ -452,7 +459,9 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof Footnote footnote) {
             Integer number = footnoteNumbers.get().get(footnoteLabel(footnote.getText()));
-            return number != null ? new FootnoteRefRun(number) : null;
+            // An undefined [^label] was never numbered; render its literal source (CommonMark keeps
+            // the brackets) as plain text rather than a dangling superscript with no note to reach.
+            return number != null ? new FootnoteRefRun(number) : new TextRun(footnote.getChars().toString());
         }
         if (node instanceof Emoji emoji) {
             return new EmojiRun(emoji.getText().toString());
@@ -489,7 +498,7 @@ public final class FlexmarkAstMapper {
         }
         if (node instanceof HtmlInline inline) {
             String raw = inline.getChars().toString();
-            String html = raw.trim().toLowerCase();
+            String html = raw.trim().toLowerCase(java.util.Locale.ROOT);
             if (html.equals("<br>") || html.equals("<br/>") || html.equals("<br />")) {
                 return new LineBreakRun(true);
             }

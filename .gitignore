@@ -49,3 +49,5 @@ build/
 .claude/
 # Internal planning, audit, and roadmap notes that should not ship.
 docs/private/
+# Scratch sandbox project used to try the library out by hand; not part of the repo.
+/GP-Test/

@@ -81,9 +81,17 @@ public final class ListRenderer implements NodeRenderer<ListNode> {
             for (int i = start; i < content.size(); i++) {
                 MarkdownNode child = content.get(i);
                 if (child instanceof ListNode nested) {
+                    // A nested list computes its own absolute indent from depth, so it is added
+                    // straight into the item section (wrapping it would double-indent it).
                     renderList(nested, itemSec, ctx, depth + 1);
                 } else {
-                    ctx.renderBlock(child, itemSec);
+                    // A continuation block (second paragraph, code block, quote, …) bypasses the
+                    // marker paragraph's margin, so wrap it in a section carrying the item's left
+                    // indent — otherwise it renders flush against the page margin, left of the marker.
+                    itemSec.addSection(contSec -> {
+                        contSec.margin(new DocumentInsets(0, 0, 0, indent));
+                        ctx.renderBlock(child, contSec);
+                    });
                 }
             }
         });

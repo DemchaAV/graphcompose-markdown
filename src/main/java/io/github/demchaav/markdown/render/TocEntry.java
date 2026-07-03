@@ -8,5 +8,5 @@ package io.github.demchaav.markdown.render;
  * @param text  the heading's plain text (inline markup stripped)
  * @param slug  the heading's anchor slug
  */
-record TocEntry(int level, String text, String slug) {
+public record TocEntry(int level, String text, String slug) {
 }

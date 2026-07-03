@@ -76,10 +76,25 @@ class MarkdownCliTest {
     }
 
     @Test
-    void versionFlagExitsZero() {
-        CliResult result = run("--version");
+    void versionFlagPrintsTheModuleVersion() {
+        // --version prints to stdout; capture it and assert it carries a real version number
+        // rather than a stale hard-coded literal (the string used to drift from the pom).
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(stdout, true, StandardCharsets.UTF_8));
+        int exitCode;
+        try {
+            exitCode = MarkdownCli.newCommandLine().execute("--version");
+        } finally {
+            System.setOut(originalOut);
+        }
 
-        assertThat(result.exitCode()).isZero();
+        assertThat(exitCode).isZero();
+        String out = stdout.toString(StandardCharsets.UTF_8);
+        assertThat(out).contains("graph-compose-markdown CLI");
+        // A concrete version (filtered from the module <version>), never the literal placeholder.
+        assertThat(out).containsPattern("CLI \\d+\\.\\d+");
+        assertThat(out).doesNotContain("${project.version}");
     }
 
     @Test

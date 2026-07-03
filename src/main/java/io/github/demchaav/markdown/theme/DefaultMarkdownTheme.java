@@ -4,6 +4,7 @@ import com.demcha.compose.document.api.DocumentPageSize;
 import com.demcha.compose.document.style.DocumentColor;
 import com.demcha.compose.document.style.DocumentInsets;
 import io.github.demchaav.markdown.render.StandardPack;
+import io.github.demchaav.markdown.theme.tokens.AlertColors;
 import io.github.demchaav.markdown.theme.tokens.ColorTokens;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
@@ -129,6 +130,7 @@ public final class DefaultMarkdownTheme {
                 DocumentColor.rgb(51, 65, 85),     // rule
                 DocumentColor.rgb(96, 165, 250),   // accent
                 DocumentColor.rgb(15, 23, 42));    // surface (dark page)
-        return new MarkdownTokens(colors, typography(), spacing(), shape(), page(), SyntaxColors.defaultDark());
+        return new MarkdownTokens(colors, typography(), spacing(), shape(), page(), SyntaxColors.defaultDark())
+                .withAlertColors(AlertColors.defaultDark());
     }
 }

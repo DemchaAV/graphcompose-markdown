@@ -3,6 +3,7 @@ package io.github.demchaav.markdown.theme.packs;
 import com.demcha.compose.document.style.DocumentColor;
 import io.github.demchaav.markdown.theme.DefaultMarkdownTheme;
 import io.github.demchaav.markdown.theme.MarkdownTheme;
+import io.github.demchaav.markdown.theme.tokens.AlertColors;
 import io.github.demchaav.markdown.theme.tokens.ColorTokens;
 import io.github.demchaav.markdown.theme.tokens.FontFamily;
 import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
@@ -71,6 +72,7 @@ public final class GitHubTheme {
                 DocumentColor.rgb(13, 17, 23));    // surface
         return DefaultMarkdownTheme.of(new MarkdownTokens(
                 colors, typography(), PackSupport.spacing(10.0, 18.0), PackSupport.shape(6.0, 1.0),
-                PackSupport.a4Page(56.0), SyntaxColors.defaultDark()));
+                PackSupport.a4Page(56.0), SyntaxColors.defaultDark())
+                .withAlertColors(AlertColors.defaultDark()));
     }
 }
