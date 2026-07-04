@@ -83,7 +83,7 @@ Maven (once released):
 <dependency>
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 

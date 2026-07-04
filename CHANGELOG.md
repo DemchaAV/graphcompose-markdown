@@ -4,7 +4,7 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## v0.3.0 — 2026-07-04
 
 ### Build
 - **CI guards the version lockstep of the detached modules.** A new fail-fast job asserts
@@ -401,6 +401,7 @@ are grouped by area.
   theme-composition tests; and `EngineRobustnessTest` (code-fence `:::`,
   unsupported-content handling, strict mode, theme immutability).
 
-[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.1.0
