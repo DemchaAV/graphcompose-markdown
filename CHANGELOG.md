@@ -6,6 +6,14 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Build
+- **GraphCompose engine bumped 1.9.0 → 1.9.1.** Long inline-code tokens with no spaces
+  (package coordinates, fully-qualified class names, URLs) now break *within* their table
+  cell or paragraph — at `.` `:` `/` `-` seams, char-splitting only as a last resort — instead
+  of overflowing the neighbouring column or the right page margin; `auto()` engine table
+  columns also grow to fit composed cell content. No public API change. (Also shipped as the
+  `0.3.1` patch on the 0.3.x line.)
+
 ## v0.3.0 — 2026-07-04
 
 ### Build
