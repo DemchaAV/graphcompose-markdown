@@ -32,7 +32,7 @@ Markdown ──Flexmark──▶ Flexmark AST ──mapper──▶ Semantic mod
                                         types downstream)
 ```
 
-> Status: `0.2.0` released; `0.3.0` in development. The API may still change before `1.0.0`.
+> Status: `0.3.1` released. The API may still change before `1.0.0`.
 
 ## Showcase
 
@@ -83,7 +83,7 @@ Maven (once released):
 <dependency>
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
