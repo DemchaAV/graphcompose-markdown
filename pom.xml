@@ -52,7 +52,7 @@
         <flexmark.version>0.64.8</flexmark.version>
 
         <!-- Test dependencies -->
-        <junit.bom.version>6.1.1</junit.bom.version>
+        <junit.bom.version>6.1.2</junit.bom.version>
         <assertj.version>3.27.7</assertj.version>
 
         <!-- Build plugins -->
