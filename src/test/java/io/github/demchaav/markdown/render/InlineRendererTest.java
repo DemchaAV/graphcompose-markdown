@@ -6,6 +6,7 @@ import com.demcha.compose.document.node.InlineImageRun;
 import com.demcha.compose.document.node.InlineRun;
 import com.demcha.compose.document.node.InlineShapeRun;
 import com.demcha.compose.document.node.InlineTextRun;
+import com.demcha.compose.document.node.ExternalLinkTarget;
 import com.demcha.compose.document.node.InternalLinkTarget;
 import io.github.demchaav.markdown.extension.ImageResolver;
 import io.github.demchaav.markdown.model.inline.CodeRun;
@@ -85,7 +86,10 @@ class InlineRendererTest {
 
         InlineImageRun image = (InlineImageRun) rich.runs().stream()
                 .filter(InlineImageRun.class::isInstance).findFirst().orElseThrow();
-        assertThat(image.linkOptions()).isNotNull(); // the surrounding link is threaded onto the image
+        // the surrounding link is threaded onto the image as an external-URI target
+        assertThat(image.linkTarget()).isInstanceOf(ExternalLinkTarget.class);
+        assertThat(((ExternalLinkTarget) image.linkTarget()).options().uri())
+                .isEqualTo("https://example.com");
     }
 
     @Test
@@ -162,7 +166,11 @@ class InlineRendererTest {
                 List.of(new LinkRun("https://example.com", null, List.of(new TextRun("site")))), BASE);
 
         InlineTextRun run = (InlineTextRun) rich.runs().get(0);
-        assertThat(run.linkOptions()).as("external link keeps its URI options").isNotNull();
+        assertThat(run.linkTarget())
+                .as("external link keeps its URI target")
+                .isInstanceOf(ExternalLinkTarget.class);
+        assertThat(((ExternalLinkTarget) run.linkTarget()).options().uri())
+                .isEqualTo("https://example.com");
     }
 
     private static byte[] png(int width, int height) {

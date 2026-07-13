@@ -7,6 +7,15 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Build
+- **GraphCompose engine bumped 1.9.1 → 2.0.0.** The 2.0 release splits the monolithic engine
+  into per-concern modules, but `io.github.demchaav:graph-compose` stays the drop-in default —
+  it is now a thin aggregator over `graph-compose-core` + `graph-compose-render-pdf`, so this
+  library keeps rendering PDF with **no dependency change and no change to `MarkdownComposer`
+  or any public type**. The optional `graph-compose-fonts` / `graph-compose-emoji` add-ons keep
+  their own version lines and are unchanged. The only source touched was a test: 2.0 removed the
+  deprecated `linkOptions()` read-accessor on the engine's inline runs, so `InlineRendererTest`
+  now reads the surrounding link through `linkTarget()` / `ExternalLinkTarget.options().uri()`
+  (the value it asserts is unchanged). 188 library tests + the CLI suite pass on 2.0.0.
 - **GraphCompose engine bumped 1.9.0 → 1.9.1.** Long inline-code tokens with no spaces
   (package coordinates, fully-qualified class names, URLs) now break *within* their table
   cell or paragraph — at `.` `:` `/` `-` seams, char-splitting only as a last resort — instead

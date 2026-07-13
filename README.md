@@ -100,7 +100,7 @@ import java.nio.file.Path;
 String md = """
         # Release notes
 
-        GraphCompose **1.9** ships *themeable* Markdown rendering.
+        GraphCompose **2.0** ships *themeable* Markdown rendering.
 
         - Headings, lists and `inline code`
         - Syntax-highlighted code blocks
