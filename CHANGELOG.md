@@ -19,12 +19,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
   plain flow. The previous three-argument constructor is kept as an overload that defaults
   the flag on, so existing theme code compiles and behaves identically apart from the fix.
 
-  Known limitation: the rule cannot yet rescue a heading followed by a block this library
-  marks `keepTogether()` — a blockquote, code panel, callout, alert or front-matter box.
-  The engine's lookahead measures the first *line* of the following block, but a
-  keep-together block cannot split, so it relocates whole and leaves the heading behind.
-  Fixing that needs `LayoutCompiler.leadingUnitHeight` to treat a keep-together node that
-  fits on a page as its own leading unit. Paragraph, list and table bodies are unaffected.
+  Known limitation: the rule cannot yet rescue a heading followed by one of the five blocks
+  this library marks `keepTogether()` — a code block, a blockquote, a GitHub alert, a custom
+  callout, or an unsupported-block panel. The engine's lookahead measures the first *line* of
+  the following block, but a keep-together block cannot split, so it relocates whole and leaves
+  the heading behind. Fixing that needs `LayoutCompiler.leadingUnitHeight` to treat a
+  keep-together node that fits on a page as its own leading unit. Paragraph, list, table and
+  image bodies are unaffected.
 
 ### Build
 - **GraphCompose engine bumped 2.0.0 → 2.1.0.** Brings `SectionBuilder.keepWithNext()` (used
