@@ -1,5 +1,6 @@
 package io.github.demchaav.markdown.render;
 
+import com.demcha.compose.document.dsl.ParagraphBuilder;
 import com.demcha.compose.document.dsl.RichText;
 import com.demcha.compose.document.dsl.SectionBuilder;
 import com.demcha.compose.document.image.DocumentImageFitMode;
@@ -29,10 +30,12 @@ import io.github.demchaav.markdown.theme.RendererRegistry;
 import io.github.demchaav.markdown.theme.style.InlineStyle;
 import io.github.demchaav.markdown.theme.style.MarkdownStyles;
 import io.github.demchaav.markdown.theme.tokens.AlertColors;
+import io.github.demchaav.markdown.theme.tokens.PageTokens;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * The default {@link NodeRenderer} registration plus the smaller built-in renderers.
@@ -76,6 +79,15 @@ public final class BuiltinRenderers {
      * bookmark (outline entry) at its level so the rendered document gets a navigable
      * heading tree in the viewer's outline pane, and declares a GitHub-style anchor so
      * {@code [text](#heading)} links can jump to it.
+     *
+     * <p>Unless the theme turns {@link PageTokens#keepHeadingWithNext()} off, the
+     * paragraph is wrapped in a one-child section marked
+     * {@link SectionBuilder#keepWithNext()}, so a heading that would otherwise be
+     * stranded at the bottom of a page — with nothing or a single line of its body
+     * under it — moves down to join the block it introduces. The flag lives on the
+     * section because it is a node-level pagination property and a paragraph cannot
+     * carry it; the bookmark and the anchor stay on the paragraph, so outline and
+     * link destinations resolve to the heading's own position exactly as before.</p>
      */
     public static final class HeadingRenderer implements NodeRenderer<HeadingNode> {
         @Override
@@ -88,12 +100,17 @@ public final class BuiltinRenderers {
             // falling back to an on-the-fly slug if this heading was somehow not planned.
             String planned = ctx.headingSlug(node);
             String anchor = planned != null ? planned : ctx.headingAnchor(title);
-            host.addParagraph(p -> {
+            Consumer<ParagraphBuilder> paragraph = p -> {
                 p.rich(rich).margin(new DocumentInsets(above, 0, 0, 0)).anchor(anchor);
                 if (!title.isEmpty()) {
                     p.bookmark(new DocumentBookmarkOptions(title, node.level()));
                 }
-            });
+            };
+            if (ctx.tokens().page().keepHeadingWithNext()) {
+                host.addSection(s -> s.keepWithNext().addParagraph(paragraph));
+            } else {
+                host.addParagraph(paragraph);
+            }
         }
     }
 
