@@ -53,6 +53,25 @@ and the project follows [Semantic Versioning](https://semver.org/).
   columns also grow to fit composed cell content. No public API change. (Also shipped as the
   `0.3.1` patch on the 0.3.x line.)
 
+## v0.3.1 — 2026-07-06
+
+Patch release: picks up the GraphCompose 1.9.1 engine, which stops long inline-code from
+overflowing its column.
+
+### Fixed
+- **Long inline-code no longer overflows its column.** A backtick span with no spaces — a
+  package coordinate, fully-qualified class name or URL like
+  `org.junit.jupiter:junit-jupiter:5.10.2` — used to draw straight past its table-cell or
+  paragraph edge, over the neighbouring column (or off the right page margin). It now breaks
+  *within* its column — at `.` `:` `/` `-` seams, char-splitting only when a segment is still
+  too wide — while keeping the rounded code-chip fill on every wrapped fragment. Fixed in the
+  GraphCompose engine (1.9.1) and picked up here; inline code that already fits is unchanged.
+
+### Build
+- **GraphCompose engine bumped 1.9.0 → 1.9.1.** Carries the inline-code column-containment
+  fix above; `auto()` engine table columns also now grow to fit composed cell content instead
+  of collapsing. No public API change in this library.
+
 ## v0.3.0 — 2026-07-04
 
 ### Build
@@ -450,7 +469,8 @@ are grouped by area.
   theme-composition tests; and `EngineRobustnessTest` (code-fence `:::`,
   unsupported-content handling, strict mode, theme immutability).
 
-[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/DemchaAV/graphcompose-markdown/compare/v0.3.1...HEAD
+[v0.3.1]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.3.1
 [v0.3.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/DemchaAV/graphcompose-markdown/releases/tag/v0.1.0

@@ -41,7 +41,7 @@ The library is a single Maven dependency; the GraphCompose engine comes in trans
 <dependency>
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
