@@ -4,6 +4,8 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
 ## v0.4.0 — 2026-08-05
 
 Minor release: headings stop being stranded at the bottom of a page, and the PDF backend
