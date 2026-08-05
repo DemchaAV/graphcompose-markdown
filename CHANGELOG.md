@@ -4,7 +4,25 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## v0.4.0 — 2026-08-05
+
+Minor release: headings stop being stranded at the bottom of a page, and the PDF backend
+finally draws the link underlines and strikethrough every theme was already asking for.
+Both come from moving to the GraphCompose 2.x engine line (2.1.1). The only public-API
+change is an added `PageTokens` component, which keeps a constructor overload, so existing
+theme code compiles unchanged.
+
+### Upgrading — expect your documents to repaginate
+
+Both fixes are on by default, and the heading one moves content. Any document where a heading
+sat at the bottom of a page now has that heading — and everything after it — one position
+further down. This is not a rare shape: rendering this repository's own six-page manual, two
+headings were stranded (`Ways in, ways out` and `Tables`), and fixing them redrew four of the
+six pages by 22–39 % of their pixels. The page *count* did not change there, but it can.
+
+If you compare rendered PDFs against committed baselines, regenerate them with this release.
+To keep the old flow, build `PageTokens` with the fourth argument `false`; to keep links
+un-underlined, set `ShapeTokens.underlineLinks` to `false`.
 
 ### Public API
 - **A heading is no longer stranded at the bottom of a page, apart from the content it
