@@ -32,7 +32,7 @@ Markdown ──Flexmark──▶ Flexmark AST ──mapper──▶ Semantic mod
                                         types downstream)
 ```
 
-> Status: `0.3.1` released. The API may still change before `1.0.0`.
+> Status: `0.4.0` released. The API may still change before `1.0.0`.
 
 ## Showcase
 
@@ -83,7 +83,7 @@ Maven (once released):
 <dependency>
     <groupId>io.github.demchaav</groupId>
     <artifactId>graph-compose-markdown</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -100,7 +100,7 @@ import java.nio.file.Path;
 String md = """
         # Release notes
 
-        GraphCompose **1.9** ships *themeable* Markdown rendering.
+        GraphCompose **2.0** ships *themeable* Markdown rendering.
 
         - Headings, lists and `inline code`
         - Syntax-highlighted code blocks

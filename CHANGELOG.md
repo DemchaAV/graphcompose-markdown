@@ -4,6 +4,73 @@ All notable changes to **graph-compose-markdown** are documented here.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project follows [Semantic Versioning](https://semver.org/).
 
+## v0.4.0 — 2026-08-05
+
+Minor release: headings stop being stranded at the bottom of a page, and the PDF backend
+finally draws the link underlines and strikethrough every theme was already asking for.
+Both come from moving to the GraphCompose 2.x engine line (2.1.1). The only public-API
+change is an added `PageTokens` component, which keeps a constructor overload, so existing
+theme code compiles unchanged.
+
+### Upgrading — expect your documents to repaginate
+
+Both fixes are on by default, and the heading one moves content. Any document where a heading
+sat at the bottom of a page now has that heading — and everything after it — one position
+further down. This is not a rare shape: rendering this repository's own six-page manual, two
+headings were stranded (`Ways in, ways out` and `Tables`), and fixing them redrew four of the
+six pages by 22–39 % of their pixels. The page *count* did not change there, but it can.
+
+If you compare rendered PDFs against committed baselines, regenerate them with this release.
+To keep the old flow, build `PageTokens` with the fourth argument `false`; to keep links
+un-underlined, set `ShapeTokens.underlineLinks` to `false`.
+
+### Public API
+- **A heading is no longer stranded at the bottom of a page, apart from the content it
+  introduces.** `HeadingRenderer` now wraps its paragraph in a one-child section marked
+  `SectionBuilder.keepWithNext()` (the engine's opt-in orphan rule, new in GraphCompose
+  2.1.0), so a heading that fits at a page bottom but whose body's first line does not
+  moves down to join it. The flag has to sit on a section because it is a node-level
+  pagination property and a paragraph cannot carry one; the bookmark and the anchor stay
+  on the paragraph, so outline entries and `#slug` link destinations resolve to the
+  heading's own position exactly as before. Documents with no orphan render unchanged.
+- **`PageTokens` gains `keepHeadingWithNext`** (default `true`), so a theme can restore the
+  plain flow. The previous three-argument constructor is kept as an overload that defaults
+  the flag on, so existing theme code compiles and behaves identically apart from the fix.
+
+  This covers every block kind, including the five this library marks `keepTogether()` — a
+  code block, a blockquote, a GitHub alert, a custom callout and an unsupported-block panel.
+  Those needed the engine fix that shipped in GraphCompose 2.1.1: on 2.1.0 the lookahead
+  measured the first *line* of the following block, but a keep-together block has no line to
+  break after — it relocates entire — so the heading was left behind. Rendering
+  `samples/kitchen-sink.md` from the `gp-markdown-view` viewer, the one orphan across all its
+  samples (`## Blockquote`) survives the wrapping alone and disappears on 2.1.1.
+
+### Build
+- **GraphCompose engine bumped 2.0.0 → 2.1.1.** Brings `SectionBuilder.keepWithNext()` (used
+  above), the 2.1.1 fix that lets its lookahead see `keepTogether()` — without which the
+  heading rule misses every panel-shaped block this library builds — and two rendering fixes
+  this library benefits from with no source change: the PDF
+  backend now actually draws `UNDERLINE` and `STRIKETHROUGH`, so the link underlines every theme
+  already asks for through `ShapeTokens.underlineLinks` and `~~strikethrough~~` stop rendering as
+  plain text, and `DocumentColor.rgba` alpha is honoured on text, lines, borders and table fills.
+  Metrics are unchanged — the marks are painted at measured positions — so nothing reflows.
+  PDFBox moves 3.0.7 → 3.0.8 transitively. 193 library tests pass on 2.1.1.
+- **GraphCompose engine bumped 1.9.1 → 2.0.0.** The 2.0 release splits the monolithic engine
+  into per-concern modules, but `io.github.demchaav:graph-compose` stays the drop-in default —
+  it is now a thin aggregator over `graph-compose-core` + `graph-compose-render-pdf`, so this
+  library keeps rendering PDF with **no dependency change and no change to `MarkdownComposer`
+  or any public type**. The optional `graph-compose-fonts` / `graph-compose-emoji` add-ons keep
+  their own version lines and are unchanged. The only source touched was a test: 2.0 removed the
+  deprecated `linkOptions()` read-accessor on the engine's inline runs, so `InlineRendererTest`
+  now reads the surrounding link through `linkTarget()` / `ExternalLinkTarget.options().uri()`
+  (the value it asserts is unchanged). 188 library tests + the CLI suite pass on 2.0.0.
+- **GraphCompose engine bumped 1.9.0 → 1.9.1.** Long inline-code tokens with no spaces
+  (package coordinates, fully-qualified class names, URLs) now break *within* their table
+  cell or paragraph — at `.` `:` `/` `-` seams, char-splitting only as a last resort — instead
+  of overflowing the neighbouring column or the right page margin; `auto()` engine table
+  columns also grow to fit composed cell content. No public API change. (Also shipped as the
+  `0.3.1` patch on the 0.3.x line.)
+
 ## v0.3.1 — 2026-07-06
 
 Patch release: picks up the GraphCompose 1.9.1 engine, which stops long inline-code from

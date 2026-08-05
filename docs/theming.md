@@ -26,7 +26,7 @@ Pure cosmetic values, grouped:
 | `TypographyTokens` | body / heading / code font families, body & code sizes, line spacing, the six heading sizes |
 | `SpacingTokens` | block gaps, paddings, table cell padding |
 | `ShapeTokens` | corner radii, border/line weights |
-| `PageTokens` | page size, margins, content width |
+| `PageTokens` | page size, margins, content width, `keepHeadingWithNext` |
 | `SyntaxColors` | code highlight colors (keyword, string, comment, number, annotation, function) |
 
 Swap a token group to reskin everything that derives from it. Tokens are immutable
@@ -36,6 +36,16 @@ records with `withX` copy methods:
 MarkdownTokens tokens = base.tokens()
         .withColors(base.tokens().colors().withAccent(DocumentColor.rgb(0, 120, 212)))
         .withSyntax(SyntaxColors.defaultDark());
+```
+
+`PageTokens.keepHeadingWithNext` (default `true`) is the one non-cosmetic token: it
+decides whether a heading may be left stranded as the last block on a page, apart
+from the content it introduces. Set it to `false` for the plain flow:
+
+```java
+PageTokens page = base.tokens().page();
+MarkdownTokens tokens = base.tokens().withPage(
+        new PageTokens(page.pageSize(), page.margin(), page.contentWidth(), false));
 ```
 
 ## Layer 2 — component styles (`MarkdownStyles`)
