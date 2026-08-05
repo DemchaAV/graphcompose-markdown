@@ -7,8 +7,19 @@ import io.github.demchaav.markdown.theme.tokens.MarkdownTokens;
 import io.github.demchaav.markdown.theme.tokens.PageTokens;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,7 +65,11 @@ class HeadingKeepWithNextTest {
                 .build();
     }
 
-    /** @return the 1-based page carrying {@code needle}, or -1 when no page does */
+    /**
+     * @return the 1-based page carrying {@code needle}
+     * @throws AssertionError when no page does — otherwise a broken render would let
+     *                        two "not found" results compare equal and pass silently
+     */
     private static int pageOf(byte[] pdf, String needle) throws Exception {
         try (PDDocument doc = Loader.loadPDF(pdf)) {
             for (int page = 1; page <= doc.getNumberOfPages(); page++) {
@@ -65,7 +80,7 @@ class HeadingKeepWithNextTest {
                     return page;
                 }
             }
-            return -1;
+            throw new AssertionError("'" + needle + "' is on no page of the rendered document");
         }
     }
 
@@ -113,17 +128,86 @@ class HeadingKeepWithNextTest {
     }
 
     /**
-     * The wrapping section carries pagination only — the bookmark and the anchor
-     * stay on the heading paragraph, so the outline is unchanged.
+     * The outline entry points at the page the heading landed on after relocating,
+     * rather than the one it left. The wrapper carries the whole heading and moves as
+     * a unit, so this holds whichever node the bookmark rides — what it guards is the
+     * relocation itself staying in step with the outline, not the choice of node.
+     * (That choice is visible only in the destination's Y: a bookmark on the wrapper
+     * would point at the top of the heading's space-above margin instead of at the
+     * text, ~8 pt higher for an H2 in the default theme.)
      */
     @Test
-    void wrappingDoesNotDisturbTheOutline() throws Exception {
+    void theBookmarkFollowsTheRelocatedHeading() throws Exception {
         byte[] pdf = render(markdown(ORPHANING_FILLER), true);
+        int headingPage = pageOf(pdf, HEADING);
+        assertThat(headingPage).as("the sample really does relocate the heading").isEqualTo(2);
 
         try (PDDocument doc = Loader.loadPDF(pdf)) {
-            assertThat(doc.getDocumentCatalog().getDocumentOutline()).isNotNull();
-            assertThat(doc.getDocumentCatalog().getDocumentOutline().getFirstChild().getTitle())
-                    .isEqualTo("Doc");
+            PDOutlineItem bookmark = doc.getDocumentCatalog().getDocumentOutline().getFirstChild();
+            while (bookmark != null && !HEADING.equals(bookmark.getTitle())) {
+                bookmark = bookmark.getFirstChild() != null && HEADING.equals(bookmark.getFirstChild().getTitle())
+                        ? bookmark.getFirstChild()
+                        : bookmark.getNextSibling();
+            }
+            assertThat(bookmark).as("the heading has an outline entry").isNotNull();
+            assertThat(destinationPage(doc, bookmark))
+                    .as("the outline entry points at the page the heading landed on")
+                    .isEqualTo(headingPage);
         }
+    }
+
+    /**
+     * A {@code [text](#slug)} link to the relocated heading resolves to the page it
+     * landed on. The anchor rides the same paragraph as the bookmark, but it travels
+     * as a named destination rather than an outline entry, so it is a distinct path.
+     */
+    @Test
+    void anAnchorLinkFollowsTheRelocatedHeading() throws Exception {
+        String md = "[jump](#target-heading)\n\n" + markdown(ORPHANING_FILLER);
+        byte[] pdf = render(md, true);
+        int headingPage = pageOf(pdf, HEADING);
+
+        try (PDDocument doc = Loader.loadPDF(pdf)) {
+            List<Integer> targets = new ArrayList<>();
+            for (PDPage page : doc.getPages()) {
+                for (PDAnnotation annotation : page.getAnnotations()) {
+                    if (annotation instanceof PDAnnotationLink link) {
+                        PDDestination destination = link.getDestination();
+                        if (destination == null && link.getAction() instanceof PDActionGoTo goTo) {
+                            destination = goTo.getDestination();
+                        }
+                        if (destination != null) {
+                            targets.add(resolvePage(doc, destination));
+                        }
+                    }
+                }
+            }
+            assertThat(targets).as("the anchor link resolves to the heading's page")
+                    .containsExactly(headingPage);
+        }
+    }
+
+    /** @return the 1-based page an outline item points at */
+    private static int destinationPage(PDDocument doc, PDOutlineItem item) throws Exception {
+        PDDestination destination = item.getDestination();
+        if (destination == null && item.getAction() instanceof PDActionGoTo goTo) {
+            destination = goTo.getDestination();
+        }
+        return resolvePage(doc, destination);
+    }
+
+    /** @return the 1-based page a destination resolves to, or -1 when it cannot be resolved */
+    private static int resolvePage(PDDocument doc, PDDestination destination) throws Exception {
+        PDDestination resolved = destination;
+        if (resolved instanceof PDNamedDestination named) {
+            resolved = doc.getDocumentCatalog().findNamedDestinationPage(named);
+        }
+        if (resolved instanceof PDPageDestination pageDestination) {
+            int number = pageDestination.retrievePageNumber();
+            return number >= 0
+                    ? number + 1
+                    : doc.getPages().indexOf(pageDestination.getPage()) + 1;
+        }
+        return -1;
     }
 }
