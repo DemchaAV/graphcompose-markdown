@@ -19,22 +19,24 @@ and the project follows [Semantic Versioning](https://semver.org/).
   plain flow. The previous three-argument constructor is kept as an overload that defaults
   the flag on, so existing theme code compiles and behaves identically apart from the fix.
 
-  Known limitation: the rule cannot yet rescue a heading followed by one of the five blocks
-  this library marks `keepTogether()` — a code block, a blockquote, a GitHub alert, a custom
-  callout, or an unsupported-block panel. The engine's lookahead measures the first *line* of
-  the following block, but a keep-together block cannot split, so it relocates whole and leaves
-  the heading behind. Fixing that needs `LayoutCompiler.leadingUnitHeight` to treat a
-  keep-together node that fits on a page as its own leading unit. Paragraph, list, table and
-  image bodies are unaffected.
+  This covers every block kind, including the five this library marks `keepTogether()` — a
+  code block, a blockquote, a GitHub alert, a custom callout and an unsupported-block panel.
+  Those needed the engine fix that shipped in GraphCompose 2.1.1: on 2.1.0 the lookahead
+  measured the first *line* of the following block, but a keep-together block has no line to
+  break after — it relocates entire — so the heading was left behind. Rendering
+  `samples/kitchen-sink.md` from the `gp-markdown-view` viewer, the one orphan across all its
+  samples (`## Blockquote`) survives the wrapping alone and disappears on 2.1.1.
 
 ### Build
-- **GraphCompose engine bumped 2.0.0 → 2.1.0.** Brings `SectionBuilder.keepWithNext()` (used
-  above) and two rendering fixes this library benefits from with no source change: the PDF
+- **GraphCompose engine bumped 2.0.0 → 2.1.1.** Brings `SectionBuilder.keepWithNext()` (used
+  above), the 2.1.1 fix that lets its lookahead see `keepTogether()` — without which the
+  heading rule misses every panel-shaped block this library builds — and two rendering fixes
+  this library benefits from with no source change: the PDF
   backend now actually draws `UNDERLINE` and `STRIKETHROUGH`, so the link underlines every theme
   already asks for through `ShapeTokens.underlineLinks` and `~~strikethrough~~` stop rendering as
   plain text, and `DocumentColor.rgba` alpha is honoured on text, lines, borders and table fills.
   Metrics are unchanged — the marks are painted at measured positions — so nothing reflows.
-  PDFBox moves 3.0.7 → 3.0.8 transitively. 193 library tests pass on 2.1.0.
+  PDFBox moves 3.0.7 → 3.0.8 transitively. 193 library tests pass on 2.1.1.
 - **GraphCompose engine bumped 1.9.1 → 2.0.0.** The 2.0 release splits the monolithic engine
   into per-concern modules, but `io.github.demchaav:graph-compose` stays the drop-in default —
   it is now a thin aggregator over `graph-compose-core` + `graph-compose-render-pdf`, so this
